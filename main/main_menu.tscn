@@ -1,0 +1,361 @@
+[gd_scene load_steps=10 format=3 uid="uid://cos8gqdc05qw2"]
+
+[ext_resource type="Script" path="res://main/main_menu.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://sr42ocn7gdub" path="res://assets/main/background.png" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://cwpdv5fnirn1a" path="res://assets/main/button.png" id="3_btn_bg"]
+[ext_resource type="Texture2D" uid="uid://pfjqhvke8tmw" path="res://assets/main/hidden.png" id="4_hidden"]
+[ext_resource type="Texture2D" uid="uid://bv0iv3j0lgrkq" path="res://assets/main/object.png" id="5_object"]
+[ext_resource type="Texture2D" uid="uid://cyi8hta7gd15k" path="res://assets/main/adventure.png" id="6_adventure"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
+texture = ExtResource("3_btn_bg")
+texture_margin_left = 15.0
+texture_margin_top = 15.0
+texture_margin_right = 15.0
+texture_margin_bottom = 15.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_hover"]
+texture = ExtResource("3_btn_bg")
+texture_margin_left = 15.0
+texture_margin_top = 15.0
+texture_margin_right = 15.0
+texture_margin_bottom = 15.0
+modulate_color = Color(0.9, 0.9, 1.1, 1.0)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_pressed"]
+texture = ExtResource("3_btn_bg")
+texture_margin_left = 15.0
+texture_margin_top = 15.0
+texture_margin_right = 15.0
+texture_margin_bottom = 15.0
+modulate_color = Color(0.7, 0.7, 0.8, 1.0)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="MainButtonsPanel" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainButtonsPanel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="HeadingContainer" type="VBoxContainer" parent="MainButtonsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = -20
+alignment = 1
+
+[node name="Hidden" type="TextureRect" parent="MainButtonsPanel/VBoxContainer/HeadingContainer"]
+custom_minimum_size = Vector2(360, 110)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("4_hidden")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Object" type="TextureRect" parent="MainButtonsPanel/VBoxContainer/HeadingContainer"]
+custom_minimum_size = Vector2(300, 85)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("5_object")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Adventure" type="TextureRect" parent="MainButtonsPanel/VBoxContainer/HeadingContainer"]
+custom_minimum_size = Vector2(240, 65)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("6_adventure")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StartButton" type="Button" parent="MainButtonsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(250, 75)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(0.9, 0.9, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.7, 0.7, 0.8, 1)
+theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Start Game"
+
+[node name="SettingsButton" type="Button" parent="MainButtonsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(250, 75)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(0.9, 0.9, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.7, 0.7, 0.8, 1)
+theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Settings"
+
+[node name="CategorySelectPanel" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OverlayBg" type="ColorRect" parent="CategorySelectPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.08, 0.15, 0.88)
+
+[node name="VBox" type="VBoxContainer" parent="CategorySelectPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="HeaderTitle" type="Label" parent="CategorySelectPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
+theme_override_constants/outline_size = 14
+theme_override_font_sizes/font_size = 44
+text = "SELECT GAME TYPE"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CategorySelectPanel/VBox"]
+custom_minimum_size = Vector2(850, 420)
+layout_mode = 2
+size_flags_horizontal = 4
+horizontal_scroll_mode = 0
+
+[node name="CategoryGridContainer" type="GridContainer" parent="CategorySelectPanel/VBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 30
+theme_override_constants/v_separation = 30
+columns = 2
+
+[node name="CategoryBackBtn" type="Button" parent="CategorySelectPanel/VBox"]
+custom_minimum_size = Vector2(180, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "◄ Back"
+
+[node name="LevelSelectPanel" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OverlayBg" type="ColorRect" parent="LevelSelectPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.08, 0.15, 0.88)
+
+[node name="VBox" type="VBoxContainer" parent="LevelSelectPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="HeaderTitle" type="Label" parent="LevelSelectPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
+theme_override_constants/outline_size = 14
+theme_override_font_sizes/font_size = 44
+text = "LIVING ROOM - LEVELS"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="LevelSelectPanel/VBox"]
+custom_minimum_size = Vector2(850, 420)
+layout_mode = 2
+size_flags_horizontal = 4
+horizontal_scroll_mode = 0
+
+[node name="GridContainer" type="GridContainer" parent="LevelSelectPanel/VBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 30
+theme_override_constants/v_separation = 30
+columns = 3
+
+[node name="LevelSelectBackBtn" type="Button" parent="LevelSelectPanel/VBox"]
+custom_minimum_size = Vector2(180, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "◄ Back"
+
+[node name="SettingsPanel" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OverlayBg" type="ColorRect" parent="SettingsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.08, 0.15, 0.88)
+
+[node name="CenterContainer" type="CenterContainer" parent="SettingsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="SettingsPanel/CenterContainer"]
+custom_minimum_size = Vector2(400, 300)
+layout_mode = 2
+theme_override_constants/separation = 25
+alignment = 1
+
+[node name="SettingsTitle" type="Label" parent="SettingsPanel/CenterContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
+theme_override_constants/outline_size = 14
+theme_override_font_sizes/font_size = 44
+text = "SETTINGS"
+horizontal_alignment = 1
+
+[node name="SoundToggleBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
+custom_minimum_size = Vector2(280, 65)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Sound FX: ON"
+
+[node name="MusicToggleBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
+custom_minimum_size = Vector2(280, 65)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Music: ON"
+
+[node name="RemoveAdsBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
+custom_minimum_size = Vector2(280, 65)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "🚫 Remove Ads"
+
+[node name="RestorePurchasesBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
+custom_minimum_size = Vector2(280, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.8, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "🔄 Restore Purchases"
+
+[node name="SettingsCloseBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
+custom_minimum_size = Vector2(180, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Close"
+
+[connection signal="pressed" from="MainButtonsPanel/VBoxContainer/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="MainButtonsPanel/VBoxContainer/SettingsButton" to="." method="_on_settings_button_pressed"]
+[connection signal="pressed" from="CategorySelectPanel/VBox/CategoryBackBtn" to="." method="_on_category_back_pressed"]
+[connection signal="pressed" from="LevelSelectPanel/VBox/LevelSelectBackBtn" to="." method="_on_level_select_back_pressed"]
+[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/SoundToggleBtn" to="." method="_on_sound_toggle_pressed"]
+[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/MusicToggleBtn" to="." method="_on_music_toggle_pressed"]
+[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/RemoveAdsBtn" to="." method="_on_remove_ads_pressed"]
+[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/RestorePurchasesBtn" to="." method="_on_restore_purchases_pressed"]
+[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/SettingsCloseBtn" to="." method="_on_settings_close_pressed"]

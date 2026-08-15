@@ -1,0 +1,113 @@
+[gd_scene load_steps=9 format=3 uid="uid://upperhuduid"]
+
+[ext_resource type="Script" path="res://hud/upper_hud.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://hearticonuid" path="res://assets/main/heart.png" id="2_heart"]
+[ext_resource type="PackedScene" uid="uid://hintbuttonuid" path="res://hud/hint_button.tscn" id="3_hint"]
+[ext_resource type="Texture2D" uid="uid://cwpdv5fnirn1a" path="res://assets/main/button.png" id="4_btn_bg"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
+texture = ExtResource("4_btn_bg")
+texture_margin_left = 12.0
+texture_margin_top = 10.0
+texture_margin_right = 12.0
+texture_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_hover"]
+texture = ExtResource("4_btn_bg")
+texture_margin_left = 12.0
+texture_margin_top = 10.0
+texture_margin_right = 12.0
+texture_margin_bottom = 10.0
+modulate_color = Color(0.9, 0.9, 1.1, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_pressed"]
+texture = ExtResource("4_btn_bg")
+texture_margin_left = 12.0
+texture_margin_top = 10.0
+texture_margin_right = 12.0
+texture_margin_bottom = 10.0
+modulate_color = Color(0.7, 0.7, 0.8, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
+
+[node name="UpperHUD" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="BackgroundPanel" type="ColorRect" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 75.0
+grow_horizontal = 2
+color = Color(0.0823529, 0.12549, 0.243137, 0.862745)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 75.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="HeartsContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ExitBtn" type="Button" parent="MarginContainer/HBoxContainer/HeartsContainer"]
+custom_minimum_size = Vector2(130, 48)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(0.9, 0.9, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.7, 0.7, 0.8, 1)
+theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "◄ Back"
+
+[node name="HeartIcon" type="TextureRect" parent="MarginContainer/HBoxContainer/HeartsContainer"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("2_heart")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LivesLabel" type="Label" parent="MarginContainer/HBoxContainer/HeartsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "x 3"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HintButton" parent="MarginContainer/HBoxContainer/HeartsContainer" instance=ExtResource("3_hint")]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Spacer" type="Control" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="ScoreContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="MarginContainer/HBoxContainer/ScoreContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Score: 0"
+horizontal_alignment = 2
+vertical_alignment = 1
