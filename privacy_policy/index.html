@@ -6,13 +6,17 @@
     <title>Privacy Policy - Hidden Object Adventure</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-primary: #f8fafc;
+            --bg-color: #0b0f19;
+            --card-bg: #151d30;
+            --text-primary: #f1f5f9;
             --text-secondary: #94a3b8;
-            --accent-color: #38bdf8;
-            --border-color: #334155;
-            --highlight: #f59e0b;
+            --accent: #38bdf8;
+            --accent-hover: #7dd3fc;
+            --border: #243049;
+            --badge-bg: rgba(56, 189, 248, 0.12);
+            --badge-border: rgba(56, 189, 248, 0.3);
+            --warning-bg: rgba(245, 158, 11, 0.1);
+            --warning-border: rgba(245, 158, 11, 0.3);
         }
 
         * {
@@ -22,34 +26,48 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
-            line-height: 1.65;
-            padding: 24px 16px;
+            line-height: 1.7;
+            padding: 32px 16px;
         }
 
         .container {
-            max-width: 820px;
+            max-width: 860px;
             margin: 0 auto;
             background: var(--card-bg);
-            padding: 40px 32px;
+            padding: 44px 36px;
             border-radius: 16px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
         }
 
         header {
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
             padding-bottom: 24px;
             margin-bottom: 32px;
         }
 
+        .badge {
+            display: inline-block;
+            background: var(--badge-bg);
+            border: 1px solid var(--badge-border);
+            color: var(--accent);
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 999px;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         h1 {
             font-size: 2.2rem;
-            color: var(--accent-color);
+            color: #ffffff;
             margin-bottom: 8px;
-            letter-spacing: -0.5px;
+            font-weight: 700;
         }
 
         .meta {
@@ -59,14 +77,13 @@
 
         h2 {
             font-size: 1.35rem;
-            color: var(--text-primary);
-            margin-top: 32px;
-            margin-bottom: 12px;
+            color: #ffffff;
+            margin-top: 36px;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            border-left: 4px solid var(--accent-color);
-            padding-left: 12px;
+            border-left: 4px solid var(--accent);
+            padding-left: 14px;
         }
 
         p {
@@ -75,9 +92,9 @@
             font-size: 1rem;
         }
 
-        ul {
+        ul, ol {
             margin-left: 24px;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
             color: var(--text-secondary);
         }
 
@@ -85,37 +102,77 @@
             margin-bottom: 8px;
         }
 
+        strong {
+            color: var(--text-primary);
+        }
+
         a {
-            color: var(--accent-color);
+            color: var(--accent);
             text-decoration: none;
-            transition: color 0.2s ease;
+            transition: color 0.2s;
         }
 
         a:hover {
-            color: #7dd3fc;
+            color: var(--accent-hover);
             text-decoration: underline;
         }
 
-        .highlight-box {
-            background: rgba(56, 189, 248, 0.08);
-            border: 1px solid rgba(56, 189, 248, 0.25);
-            border-radius: 10px;
-            padding: 16px 20px;
-            margin: 20px 0;
+        .callout {
+            background: var(--badge-bg);
+            border: 1px solid var(--badge-border);
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin: 24px 0;
         }
 
-        .highlight-box p {
+        .callout p {
             margin: 0;
             color: var(--text-primary);
         }
 
-        footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-            text-align: center;
-            font-size: 0.88rem;
+        .table-wrap {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+        }
+
+        th {
+            background: rgba(56, 189, 248, 0.08);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        td {
             color: var(--text-secondary);
+        }
+
+        footer {
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 24px 18px;
+            }
+            h1 {
+                font-size: 1.75rem;
+            }
         }
     </style>
 </head>
@@ -123,59 +180,105 @@
 
 <div class="container">
     <header>
+        <span class="badge">Google Play Store Compliant</span>
         <h1>Privacy Policy</h1>
-        <p class="meta"><strong>Game:</strong> Hidden Object Adventure &bull; <strong>Effective Date:</strong> August 15, 2026</p>
+        <p class="meta">
+            <strong>App / Game:</strong> Hidden Object Adventure &bull; 
+            <strong>Developer:</strong> tafaisalkhan &bull; 
+            <strong>Effective Date:</strong> August 15, 2026
+        </p>
     </header>
 
-    <div class="highlight-box">
-        <p>This Privacy Policy explains how our mobile application <strong>Hidden Object Adventure</strong> collects, uses, and safeguards user information in compliance with Google Play Developer Policies and global privacy regulations (including GDPR &amp; COPPA).</p>
+    <div class="callout">
+        <p>This Privacy Policy applies to the mobile game <strong>Hidden Object Adventure</strong> (available on Google Play) published by <strong>tafaisalkhan</strong>. This document transparently describes how our application collects, uses, and safeguards user data in full alignment with the <strong>Google Play Developer Program Policies</strong>, <strong>GDPR</strong>, <strong>CCPA</strong>, and <strong>COPPA</strong>.</p>
     </div>
 
-    <h2>1. Information Collection &amp; Use</h2>
-    <p>We respect your privacy. <strong>Hidden Object Adventure</strong> is designed as an offline-first puzzle game. We do not require users to create an account or provide direct personal information (such as your name, physical address, or phone number).</p>
-    <p>However, the app utilizes standard third-party services that may automatically collect certain diagnostic and non-personal technical information to provide advertisements, in-app purchases, and performance analytics.</p>
+    <h2>1. Overview &amp; Offline-First Architecture</h2>
+    <p>We respect your personal privacy. <strong>Hidden Object Adventure</strong> is designed as a standalone, offline-playable hidden object puzzle game. We do <strong>not</strong> require you to register an account, log in with social media, or provide personal identity details (such as your real name, home address, or phone number) to play our game.</p>
 
-    <h2>2. Third-Party Services</h2>
-    <p>The app integrates with third-party service providers that have their own privacy policies governing data handling:</p>
+    <h2>2. Google Play Data Safety Disclosures</h2>
+    <p>In compliance with the Google Play Data Safety policy, the following table summarizes the data types that may be processed by integrated third-party SDKs:</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Data Type</th>
+                    <th>Collected By</th>
+                    <th>Purpose</th>
+                    <th>Encrypted in Transit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Device or Other Identifiers</strong><br>(e.g., Google Advertising ID / AAID)</td>
+                    <td>Google AdMob</td>
+                    <td>Advertising, Frequency Capping, Fraud Prevention</td>
+                    <td>Yes (HTTPS / TLS)</td>
+                </tr>
+                <tr>
+                    <td><strong>App Info &amp; Diagnostics</strong><br>(e.g., Crash Logs, ANR Reports)</td>
+                    <td>Google Play Console</td>
+                    <td>Bug Fixing, Stability Optimization</td>
+                    <td>Yes (HTTPS / TLS)</td>
+                </tr>
+                <tr>
+                    <td><strong>In-App Purchase Records</strong></td>
+                    <td>Google Play Billing</td>
+                    <td>Processing digital orders (e.g. Remove Ads)</td>
+                    <td>Yes (Google Secure Servers)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>3. Third-Party Services &amp; Advertising Partners</h2>
+    <p>Our game integrates trusted, industry-standard Google SDKs. Each third-party provider processes data in accordance with their respective privacy policies:</p>
     <ul>
         <li>
-            <strong>Google Play Services:</strong> Used for platform distribution, license verification, and app security.<br>
+            <strong>Google Play Services:</strong> Used for platform distribution, license integrity verification, and app security.<br>
             <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a>
         </li>
         <li>
-            <strong>Google AdMob:</strong> Used to display banner, interstitial, and rewarded video advertisements. AdMob may collect and process device advertising identifiers (such as Google Advertising ID / AAID) and device information to deliver relevant ads.<br>
-            <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer">How Google uses information from sites or apps</a>
+            <strong>Google AdMob:</strong> Used to display banner, interstitial, and rewarded video ads. AdMob uses the device's Google Advertising ID to serve ads, limit repeated ad impressions, and measure ad performance.<br>
+            <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer">How Google uses information from sites or apps that use our services</a>
         </li>
         <li>
-            <strong>Google Play In-App Billing:</strong> Used securely for optional digital in-app purchases (such as "Remove Ads"). All payment transactions and credit card data are processed directly by Google Play Store servers and are never accessed or stored by our app.<br>
+            <strong>Google Play In-App Billing:</strong> Provides secure transactions for optional digital purchases (such as "Remove Ads"). <strong>We never collect, process, or store your credit card or financial details.</strong> All payments are processed entirely and securely by Google Play.<br>
             <a href="https://play.google.com/about/play-terms/index.html" target="_blank" rel="noopener noreferrer">Google Play Terms of Service</a>
         </li>
     </ul>
 
-    <h2>3. Log Data and Analytics</h2>
-    <p>In case of an unexpected error or crash in the game, diagnostic information (such as device model, operating system version, app state at the time of crash) may be collected anonymously via Google Play Console crash diagnostics to help us diagnose bugs and improve game stability.</p>
+    <h2>4. Children's Privacy (COPPA &amp; Families Policy Compliance)</h2>
+    <p>Our game is family-friendly and designed for puzzle lovers of all ages. We do not knowingly collect personal information from children under the age of 13. In accordance with the <strong>Children’s Online Privacy Protection Act (COPPA)</strong> and the <strong>Google Play Families Policy</strong>, all ad requests are configured with appropriate family and age-appropriate content ratings.</p>
 
-    <h2>4. Children's Privacy (COPPA Compliance)</h2>
-    <p>Our game is designed for all audiences and puzzle enthusiasts. We do not knowingly collect personally identifiable information from children under 13 years of age. In compliance with the Children's Online Privacy Protection Act (COPPA) and Google Play Families Policy, our ad requests are configured to respect privacy guidelines.</p>
+    <h2>5. Local Data Storage &amp; Progress Retention</h2>
+    <p>Your game save data (such as completed levels, earned 3-star ratings, high scores, and sound/music settings) is stored <strong>locally on your device storage</strong>. We do not upload your gameplay progress to private external servers.</p>
 
-    <h2>5. Data Security</h2>
-    <p>We value your trust. Any game save progress (such as unlocked sublevels and star scores) is saved locally on your device storage and is not transmitted to external private servers.</p>
+    <h2>6. User Control &amp; How to Opt-Out of Personalized Ads</h2>
+    <p>You have full control over advertising identifiers on your Android device. You can reset your Google Advertising ID or opt out of personalized advertisements at any time:</p>
+    <ol>
+        <li>Open your Android device <strong>Settings</strong>.</li>
+        <li>Navigate to <strong>Google &rarr; Ads</strong> (or <strong>Privacy &rarr; Ads</strong>).</li>
+        <li>Tap <strong>Reset advertising ID</strong> or <strong>Delete advertising ID</strong>.</li>
+    </ol>
 
-    <h2>6. User Choices &amp; Ad Opt-Out</h2>
-    <p>You can opt out of personalized advertisements or reset your Advertising ID at any time through your Android device settings:</p>
-    <ul>
-        <li>Go to <strong>Settings &rarr; Google &rarr; Ads</strong> and select <strong>Reset advertising ID</strong> or <strong>Delete advertising ID</strong>.</li>
-    </ul>
+    <h2>7. Data Deletion Requests</h2>
+    <p>Because our game stores gameplay progress locally on your device and does not maintain remote user accounts, you can delete all locally stored game data at any time by clearing the game's storage cache under <strong>Settings &rarr; Apps &rarr; Hidden Object Adventure &rarr; Storage &rarr; Clear Data</strong>, or by uninstalling the application.</p>
 
-    <h2>7. Changes to This Privacy Policy</h2>
-    <p>We may update this Privacy Policy from time to time to reflect improvements in our app or regulatory requirements. Any changes will be posted on this page with an updated effective date.</p>
+    <h2>8. Policy Updates</h2>
+    <p>We may update this Privacy Policy periodically to reflect app updates, new legal requirements, or Google Play policy modifications. Changes will be posted to this page with an updated effective date.</p>
 
-    <h2>8. Contact Us</h2>
-    <p>If you have any questions, feedback, or requests regarding this Privacy Policy, please contact us at:</p>
-    <p><strong>Email:</strong> <a href="mailto:support@example.com">support@example.com</a></p>
+    <h2>9. Contact Information</h2>
+    <p>If you have any questions or feedback regarding this Privacy Policy, please contact the developer:</p>
+    <p>
+        <strong>Developer:</strong> tafaisalkhan<br>
+        <strong>Project Repository:</strong> <a href="https://github.com/tafaisalkhan/hidden_object" target="_blank" rel="noopener noreferrer">https://github.com/tafaisalkhan/hidden_object</a><br>
+        <strong>Email Support:</strong> <a href="mailto:tafaisalkhan@gmail.com">tafaisalkhan@gmail.com</a>
+    </p>
 
     <footer>
-        &copy; 2026 Hidden Object Adventure. All rights reserved.
+        &copy; 2026 tafaisalkhan &bull; Hidden Object Adventure. All rights reserved.
     </footer>
 </div>
 
