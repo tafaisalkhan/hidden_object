@@ -503,7 +503,7 @@ func _update_settings_ui():
 			remove_ads_btn.text = "Ads Removed ✓"
 			remove_ads_btn.disabled = true
 		else:
-			remove_ads_btn.text = "🚫 Remove Ads ($2.99)"
+			remove_ads_btn.text = "🚫 Remove Ads ($4.99)"
 			remove_ads_btn.disabled = false
 
 func _on_sound_toggle_pressed():
