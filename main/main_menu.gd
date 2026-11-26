@@ -546,7 +546,7 @@ func _on_settings_close_pressed():
 # ── Extra Store, Daily Challenge, & Popup Suite Helpers ───────────────────────
 
 func _setup_extra_ui() -> void:
-	# Top Right Sky Blue Coin Pill
+	# Top Right Gold-Framed Coin Pill
 	var coin_btn := Button.new()
 	coin_btn.name = "MenuCoinsBtn"
 	var coins_val: int = GameManager.coins if GameManager else 0
@@ -554,17 +554,22 @@ func _setup_extra_ui() -> void:
 	coin_btn.expand_icon = true
 	coin_btn.text = " %d +" % coins_val
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("#1ea4e9") # Vibrant Sky Blue
-	sb.border_color = Color("#ffffff") # White border
+	sb.bg_color = Color(0.06, 0.09, 0.17, 0.90) # Midnight navy
+	sb.border_color = Color("#ffd54f") # Rich metallic gold border
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(16)
 	sb.shadow_size = 6
 	sb.shadow_offset = Vector2(0, 3)
-	sb.shadow_color = Color(0.04, 0.16, 0.28, 0.35)
+	sb.shadow_color = Color(0, 0, 0, 0.45)
 	coin_btn.add_theme_stylebox_override("normal", sb)
-	coin_btn.add_theme_stylebox_override("hover", sb)
+	var sb_hov := sb.duplicate() as StyleBoxFlat
+	sb_hov.bg_color = Color(0.12, 0.18, 0.28, 0.95)
+	coin_btn.add_theme_stylebox_override("hover", sb_hov)
+	coin_btn.add_theme_stylebox_override("pressed", sb)
+	coin_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	coin_btn.add_theme_font_override("font", preload("res://assets/fonts/LuckiestGuy-Regular.ttf"))
 	coin_btn.add_theme_font_size_override("font_size", 20)
-	coin_btn.add_theme_color_override("font_color", Color.WHITE)
+	coin_btn.add_theme_color_override("font_color", Color("#ffd54f"))
 	coin_btn.custom_minimum_size = Vector2(160, 50)
 	coin_btn.position = Vector2(get_viewport_rect().size.x - 180, 20)
 	coin_btn.pressed.connect(_open_store)
@@ -596,6 +601,7 @@ func _setup_extra_ui() -> void:
 	# Extra buttons in SettingsPanel
 	var settings_vbox := get_node_or_null("SettingsPanel/CenterContainer/VBox") as VBoxContainer
 	if settings_vbox:
+		settings_vbox.add_theme_constant_override("separation", 10)
 		var close_btn := get_node_or_null("SettingsPanel/CenterContainer/VBox/SettingsCloseBtn")
 		var close_idx: int = close_btn.get_index() if close_btn else settings_vbox.get_child_count()
 		var update_btn := _create_settings_button("🚀 Check Update", func():
@@ -661,17 +667,44 @@ func _create_menu_button(label_text: String, callback: Callable) -> Button:
 func _create_settings_button(label_text: String, callback: Callable) -> Button:
 	var btn := Button.new()
 	btn.text = label_text
-	btn.custom_minimum_size = Vector2(280, 50)
+	btn.custom_minimum_size = Vector2(280, 56)
 	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	btn.add_theme_font_size_override("font_size", 20)
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("#1ea4e9") # Sky Blue
-	sb.border_color = Color("#ffffff")
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(14)
-	btn.add_theme_stylebox_override("normal", sb)
-	btn.add_theme_stylebox_override("hover", sb)
-	btn.add_theme_color_override("font_color", Color.WHITE)
+	btn.add_theme_font_override("font", preload("res://assets/fonts/LuckiestGuy-Regular.ttf"))
+	btn.add_theme_font_size_override("font_size", 22)
+	btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	btn.add_theme_color_override("font_hover_color", Color(0.95, 0.95, 1, 1))
+	btn.add_theme_color_override("font_pressed_color", Color(0.7, 0.7, 0.8, 1))
+	btn.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
+	btn.add_theme_constant_override("outline_size", 6)
+
+	var btn_tex = preload("res://assets/main/button.png")
+	var sb_norm := StyleBoxTexture.new()
+	sb_norm.texture = btn_tex
+	sb_norm.texture_margin_left = 15.0
+	sb_norm.texture_margin_top = 15.0
+	sb_norm.texture_margin_right = 15.0
+	sb_norm.texture_margin_bottom = 15.0
+
+	var sb_hov := StyleBoxTexture.new()
+	sb_hov.texture = btn_tex
+	sb_hov.texture_margin_left = 15.0
+	sb_hov.texture_margin_top = 15.0
+	sb_hov.texture_margin_right = 15.0
+	sb_hov.texture_margin_bottom = 15.0
+	sb_hov.modulate_color = Color(1.1, 1.1, 1.2, 1.0)
+
+	var sb_press := StyleBoxTexture.new()
+	sb_press.texture = btn_tex
+	sb_press.texture_margin_left = 15.0
+	sb_press.texture_margin_top = 15.0
+	sb_press.texture_margin_right = 15.0
+	sb_press.texture_margin_bottom = 15.0
+	sb_press.modulate_color = Color(0.7, 0.7, 0.8, 1.0)
+
+	btn.add_theme_stylebox_override("normal", sb_norm)
+	btn.add_theme_stylebox_override("hover", sb_hov)
+	btn.add_theme_stylebox_override("pressed", sb_press)
+	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	btn.pressed.connect(callback)
 	return btn
 

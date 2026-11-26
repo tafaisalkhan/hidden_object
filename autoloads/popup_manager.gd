@@ -2,6 +2,7 @@ extends Node
 
 const GAME_FONT: Font = preload("res://assets/fonts/LuckiestGuy-Regular.ttf")
 const COIN_TEXTURE: Texture2D = preload("res://assets/main/coin_icon.png")
+const BUTTON_TEX: Texture2D = preload("res://assets/main/button.png")
 
 const DAILY_REWARDS := [
 	{"coins": 20, "label": "20 COINS"},
@@ -62,71 +63,78 @@ func _wire_button_juice(btn: Button) -> void:
 		tw.tween_property(btn, "scale", Vector2.ONE, 0.10).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	)
 
-# =================== SKY BLUE THEME STYLES ===================
+# =================== GAME THEME STYLES (MIDNIGHT NAVY & GOLD) ===================
 
-func style_game_dialog(panel: Panel, border_color := Color("#29a8ec")) -> void:
+func style_game_dialog(panel: Panel, border_color := Color("#ffd54f")) -> void:
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("#f0faff") # Crisp luminous sky blue card
-	sb.border_color = border_color # Sky blue border
+	sb.bg_color = Color(0.06, 0.09, 0.17, 0.96) # Dark fantasy midnight navy
+	sb.border_color = border_color # Rich gold border
 	sb.set_border_width_all(4)
 	sb.set_corner_radius_all(24)
-	sb.shadow_size = 14
-	sb.shadow_offset = Vector2(0, 8)
-	sb.shadow_color = Color(0.04, 0.16, 0.28, 0.40)
+	sb.shadow_size = 18
+	sb.shadow_offset = Vector2(0, 10)
+	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.65)
 	sb.anti_aliasing = true
 	panel.add_theme_stylebox_override("panel", sb)
 
-func _button_style_3d(fill: Color, border: Color, shadow_size: int = 7, shadow_y: int = 5) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = fill
-	style.border_color = border
-	style.set_border_width_all(4)
-	style.set_corner_radius_all(20)
-	style.shadow_color = Color(0.04, 0.16, 0.28, 0.40)
-	style.shadow_size = shadow_size
-	style.shadow_offset = Vector2(0, shadow_y)
-	style.anti_aliasing = true
-	return style
+func style_primary_button(btn: Button, font_size: int = 22, font_color := Color.WHITE) -> void:
+	var sb_norm := StyleBoxTexture.new()
+	sb_norm.texture = BUTTON_TEX
+	sb_norm.texture_margin_left = 15.0
+	sb_norm.texture_margin_top = 15.0
+	sb_norm.texture_margin_right = 15.0
+	sb_norm.texture_margin_bottom = 15.0
+
+	var sb_hov := StyleBoxTexture.new()
+	sb_hov.texture = BUTTON_TEX
+	sb_hov.texture_margin_left = 15.0
+	sb_hov.texture_margin_top = 15.0
+	sb_hov.texture_margin_right = 15.0
+	sb_hov.texture_margin_bottom = 15.0
+	sb_hov.modulate_color = Color(1.1, 1.1, 1.2, 1.0)
+
+	var sb_press := StyleBoxTexture.new()
+	sb_press.texture = BUTTON_TEX
+	sb_press.texture_margin_left = 15.0
+	sb_press.texture_margin_top = 15.0
+	sb_press.texture_margin_right = 15.0
+	sb_press.texture_margin_bottom = 15.0
+	sb_press.modulate_color = Color(0.7, 0.7, 0.8, 1.0)
+
+	btn.add_theme_stylebox_override("normal", sb_norm)
+	btn.add_theme_stylebox_override("hover", sb_hov)
+	btn.add_theme_stylebox_override("pressed", sb_press)
+	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	btn.add_theme_font_override("font", GAME_FONT)
+	btn.add_theme_font_size_override("font_size", font_size)
+	btn.add_theme_color_override("font_color", font_color)
+	btn.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
+	btn.add_theme_constant_override("outline_size", 6)
+	_wire_button_juice(btn)
 
 func style_skyblue_button(btn: Button) -> void:
-	var fill := Color("#1ea4e9") # Vibrant Sky Blue
-	var dark := Color("#026aa7") # Deep oceanic shadow
-	btn.add_theme_stylebox_override("normal", _button_style_3d(fill, dark, 7, 5))
-	btn.add_theme_stylebox_override("hover", _button_style_3d(fill.lightened(0.12), dark, 9, 6))
-	btn.add_theme_stylebox_override("pressed", _button_style_3d(fill.darkened(0.12), dark, 2, 2))
-	btn.add_theme_font_override("font", GAME_FONT)
-	btn.add_theme_font_size_override("font_size", 22)
-	btn.add_theme_color_override("font_color", Color.WHITE)
-	btn.add_theme_color_override("font_shadow_color", Color(0.02, 0.1, 0.2, 0.5))
-	btn.add_theme_constant_override("shadow_offset_x", 1)
-	btn.add_theme_constant_override("shadow_offset_y", 2)
-	_wire_button_juice(btn)
+	style_primary_button(btn, 22, Color.WHITE)
 
 func style_gold_button(btn: Button) -> void:
-	var fill := Color("#fbc02d") # Warm sun gold
-	var dark := Color("#b26a00")
-	btn.add_theme_stylebox_override("normal", _button_style_3d(fill, dark, 7, 5))
-	btn.add_theme_stylebox_override("hover", _button_style_3d(fill.lightened(0.12), dark, 9, 6))
-	btn.add_theme_stylebox_override("pressed", _button_style_3d(fill.darkened(0.12), dark, 2, 2))
-	btn.add_theme_font_override("font", GAME_FONT)
-	btn.add_theme_font_size_override("font_size", 22)
-	btn.add_theme_color_override("font_color", Color.WHITE)
-	btn.add_theme_color_override("font_shadow_color", Color(0.2, 0.1, 0.0, 0.5))
-	btn.add_theme_constant_override("shadow_offset_x", 1)
-	btn.add_theme_constant_override("shadow_offset_y", 1)
-	_wire_button_juice(btn)
+	style_primary_button(btn, 22, Color("#fff9c4"))
 
 func style_secondary_button(btn: Button) -> void:
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("#d8f0fc") # Soft sky tint
-	sb.border_color = Color("#90caf9") # Delicate sky border
+	sb.bg_color = Color(0.12, 0.18, 0.28, 0.85) # Slate navy glass
+	sb.border_color = Color(0.4, 0.5, 0.65, 0.7) # Soft border
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(16)
 	btn.add_theme_stylebox_override("normal", sb)
-	btn.add_theme_stylebox_override("hover", sb)
+
+	var sb_hov := sb.duplicate() as StyleBoxFlat
+	sb_hov.bg_color = Color(0.18, 0.25, 0.38, 0.95)
+	sb_hov.border_color = Color(0.6, 0.7, 0.85, 1.0)
+	btn.add_theme_stylebox_override("hover", sb_hov)
+	btn.add_theme_stylebox_override("pressed", sb)
+	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	btn.add_theme_font_override("font", GAME_FONT)
 	btn.add_theme_font_size_override("font_size", 16)
-	btn.add_theme_color_override("font_color", Color("#0d47a1")) # Deep royal blue text
+	btn.add_theme_color_override("font_color", Color("#dce6f2"))
 	_wire_button_juice(btn)
 
 func make_game_close_button(pos: Vector2) -> Button:
@@ -135,12 +143,16 @@ func make_game_close_button(pos: Vector2) -> Button:
 	btn.position = pos
 	btn.size = Vector2(42, 42)
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("#ef5350")
-	sb.border_color = Color("#c62828")
+	sb.bg_color = Color(0.85, 0.22, 0.22, 0.9)
+	sb.border_color = Color("#ffd54f") # Rich gold border
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(21)
 	btn.add_theme_stylebox_override("normal", sb)
-	btn.add_theme_stylebox_override("hover", sb)
+	var sb_hov := sb.duplicate() as StyleBoxFlat
+	sb_hov.bg_color = Color(0.95, 0.30, 0.30, 1.0)
+	btn.add_theme_stylebox_override("hover", sb_hov)
+	btn.add_theme_stylebox_override("pressed", sb)
+	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	btn.add_theme_font_override("font", GAME_FONT)
 	btn.add_theme_font_size_override("font_size", 18)
 	btn.add_theme_color_override("font_color", Color.WHITE)
@@ -149,7 +161,7 @@ func make_game_close_button(pos: Vector2) -> Button:
 
 func _create_dimmer(parent: Node) -> ColorRect:
 	var dimmer := ColorRect.new()
-	dimmer.color = Color(0.06, 0.18, 0.32, 0.76) # Atmospheric sky-navy dimmer
+	dimmer.color = Color(0.047, 0.082, 0.161, 0.88) # Rich dark navy dimmer matching main menu and game over HUD
 	dimmer.size = parent.get_viewport().get_visible_rect().size
 	dimmer.mouse_filter = Control.MOUSE_FILTER_STOP
 	parent.add_child(dimmer)
@@ -174,7 +186,7 @@ func show_rate_popup(parent: Node) -> void:
 	var panel := Panel.new()
 	panel.size = Vector2(460, 420)
 	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#29a8ec"))
+	style_game_dialog(panel, Color("#ffd54f"))
 	parent.add_child(panel)
 
 	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
@@ -188,7 +200,7 @@ func show_rate_popup(parent: Node) -> void:
 	eyebrow.size = Vector2(420, 20)
 	eyebrow.add_theme_font_override("font", GAME_FONT)
 	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#0288d1"))
+	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
 	panel.add_child(eyebrow)
 
 	var title := Label.new()
@@ -198,7 +210,9 @@ func show_rate_popup(parent: Node) -> void:
 	title.size = Vector2(420, 44)
 	title.add_theme_font_override("font", GAME_FONT)
 	title.add_theme_font_size_override("font_size", 28)
-	title.add_theme_color_override("font_color", Color("#0d47a1"))
+	title.add_theme_color_override("font_color", Color("#ffd54f"))
+	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
+	title.add_theme_constant_override("outline_size", 6)
 	panel.add_child(title)
 
 	var stars := Label.new()
@@ -218,7 +232,9 @@ func show_rate_popup(parent: Node) -> void:
 	desc.size = Vector2(400, 70)
 	desc.add_theme_font_override("font", GAME_FONT)
 	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color("#37474f"))
+	desc.add_theme_color_override("font_color", Color("#e0e8f5"))
+	desc.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	desc.add_theme_constant_override("outline_size", 2)
 	panel.add_child(desc)
 
 	var rate_btn := Button.new()
@@ -252,7 +268,7 @@ func show_share_popup(parent: Node) -> void:
 	var panel := Panel.new()
 	panel.size = Vector2(460, 420)
 	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#29a8ec"))
+	style_game_dialog(panel, Color("#ffd54f"))
 	parent.add_child(panel)
 
 	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
@@ -266,7 +282,7 @@ func show_share_popup(parent: Node) -> void:
 	eyebrow.size = Vector2(420, 20)
 	eyebrow.add_theme_font_override("font", GAME_FONT)
 	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#0288d1"))
+	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
 	panel.add_child(eyebrow)
 
 	var title := Label.new()
@@ -276,7 +292,9 @@ func show_share_popup(parent: Node) -> void:
 	title.size = Vector2(420, 44)
 	title.add_theme_font_override("font", GAME_FONT)
 	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", Color("#0d47a1"))
+	title.add_theme_color_override("font_color", Color("#ffd54f"))
+	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
+	title.add_theme_constant_override("outline_size", 6)
 	panel.add_child(title)
 
 	var desc := Label.new()
@@ -287,7 +305,9 @@ func show_share_popup(parent: Node) -> void:
 	desc.size = Vector2(400, 75)
 	desc.add_theme_font_override("font", GAME_FONT)
 	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color("#37474f"))
+	desc.add_theme_color_override("font_color", Color("#e0e8f5"))
+	desc.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	desc.add_theme_constant_override("outline_size", 2)
 	panel.add_child(desc)
 
 	var share_btn := Button.new()
@@ -321,7 +341,7 @@ func show_support_coffee_popup(parent: Node) -> void:
 	var panel := Panel.new()
 	panel.size = Vector2(460, 430)
 	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#29a8ec"))
+	style_game_dialog(panel, Color("#ffd54f"))
 	parent.add_child(panel)
 
 	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
@@ -335,7 +355,7 @@ func show_support_coffee_popup(parent: Node) -> void:
 	eyebrow.size = Vector2(420, 20)
 	eyebrow.add_theme_font_override("font", GAME_FONT)
 	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#0288d1"))
+	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
 	panel.add_child(eyebrow)
 
 	var title := Label.new()
@@ -345,7 +365,9 @@ func show_support_coffee_popup(parent: Node) -> void:
 	title.size = Vector2(420, 44)
 	title.add_theme_font_override("font", GAME_FONT)
 	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", Color("#0d47a1"))
+	title.add_theme_color_override("font_color", Color("#ffd54f"))
+	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
+	title.add_theme_constant_override("outline_size", 6)
 	panel.add_child(title)
 
 	var desc := Label.new()
@@ -356,7 +378,9 @@ func show_support_coffee_popup(parent: Node) -> void:
 	desc.size = Vector2(400, 75)
 	desc.add_theme_font_override("font", GAME_FONT)
 	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color("#37474f"))
+	desc.add_theme_color_override("font_color", Color("#e0e8f5"))
+	desc.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	desc.add_theme_constant_override("outline_size", 2)
 	panel.add_child(desc)
 
 	var buy_btn := Button.new()
@@ -388,7 +412,7 @@ func show_no_ads_today_popup(parent: Node) -> void:
 	var panel := Panel.new()
 	panel.size = Vector2(460, 430)
 	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#29a8ec"))
+	style_game_dialog(panel, Color("#ffd54f"))
 	parent.add_child(panel)
 
 	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
@@ -402,7 +426,7 @@ func show_no_ads_today_popup(parent: Node) -> void:
 	eyebrow.size = Vector2(420, 20)
 	eyebrow.add_theme_font_override("font", GAME_FONT)
 	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#0288d1"))
+	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
 	panel.add_child(eyebrow)
 
 	var title := Label.new()
@@ -412,7 +436,9 @@ func show_no_ads_today_popup(parent: Node) -> void:
 	title.size = Vector2(420, 44)
 	title.add_theme_font_override("font", GAME_FONT)
 	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", Color("#0d47a1"))
+	title.add_theme_color_override("font_color", Color("#ffd54f"))
+	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
+	title.add_theme_constant_override("outline_size", 6)
 	panel.add_child(title)
 
 	var desc := Label.new()
@@ -423,14 +449,16 @@ func show_no_ads_today_popup(parent: Node) -> void:
 	desc.size = Vector2(400, 75)
 	desc.add_theme_font_override("font", GAME_FONT)
 	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color("#37474f"))
+	desc.add_theme_color_override("font_color", Color("#e0e8f5"))
+	desc.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	desc.add_theme_constant_override("outline_size", 2)
 	panel.add_child(desc)
 
 	var buy_btn := Button.new()
 	buy_btn.text = "🚫 REMOVE ADS ($4.99)"
 	buy_btn.size = Vector2(350, 58)
 	buy_btn.position = Vector2(55, 220)
-	style_skyblue_button(buy_btn)
+	style_primary_button(buy_btn, 22, Color("#fff9c4"))
 	buy_btn.pressed.connect(func():
 		var billing = parent.get_node_or_null("/root/BillingManager")
 		if billing and billing.has_method("purchase_remove_ads"):
@@ -458,7 +486,7 @@ func show_daily_reward_popup(parent: Node) -> void:
 	var panel := Panel.new()
 	panel.size = Vector2(480, 620)
 	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#29a8ec"))
+	style_game_dialog(panel, Color("#ffd54f"))
 	parent.add_child(panel)
 
 	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
@@ -472,7 +500,7 @@ func show_daily_reward_popup(parent: Node) -> void:
 	eyebrow.size = Vector2(440, 20)
 	eyebrow.add_theme_font_override("font", GAME_FONT)
 	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#0288d1"))
+	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
 	panel.add_child(eyebrow)
 
 	var title := Label.new()
@@ -482,7 +510,9 @@ func show_daily_reward_popup(parent: Node) -> void:
 	title.size = Vector2(440, 38)
 	title.add_theme_font_override("font", GAME_FONT)
 	title.add_theme_font_size_override("font_size", 28)
-	title.add_theme_color_override("font_color", Color("#0d47a1"))
+	title.add_theme_color_override("font_color", Color("#ffd54f"))
+	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
+	title.add_theme_constant_override("outline_size", 6)
 	panel.add_child(title)
 
 	var subtitle := Label.new()
@@ -492,7 +522,7 @@ func show_daily_reward_popup(parent: Node) -> void:
 	subtitle.size = Vector2(440, 22)
 	subtitle.add_theme_font_override("font", GAME_FONT)
 	subtitle.add_theme_font_size_override("font_size", 14)
-	subtitle.add_theme_color_override("font_color", Color("#455a64"))
+	subtitle.add_theme_color_override("font_color", Color("#b0bec5"))
 	panel.add_child(subtitle)
 
 	var cards_container := Control.new()
@@ -523,23 +553,23 @@ func show_daily_reward_popup(parent: Node) -> void:
 		var sb := StyleBoxFlat.new()
 		sb.set_corner_radius_all(18)
 		if is_today:
-			sb.bg_color = Color("#ffffff")
+			sb.bg_color = Color(0.18, 0.26, 0.40, 1.0)
 			sb.set_border_width_all(3)
-			sb.border_color = Color("#0288d1") # Vibrant sky blue
-			sb.shadow_size = 10
-			sb.shadow_color = Color(0.02, 0.54, 0.85, 0.35)
+			sb.border_color = Color("#ffd54f") # Brilliant gold border
+			sb.shadow_size = 12
+			sb.shadow_color = Color(1.0, 0.85, 0.2, 0.35)
 		elif is_claimed:
-			sb.bg_color = Color("#e1f5fe")
+			sb.bg_color = Color(0.10, 0.14, 0.22, 0.9)
 			sb.set_border_width_all(2)
-			sb.border_color = Color("#29b6f6")
+			sb.border_color = Color("#4fc3f7")
 		elif is_grand_prize:
-			sb.bg_color = Color("#fffde7")
+			sb.bg_color = Color(0.20, 0.18, 0.10, 0.95)
 			sb.set_border_width_all(2)
-			sb.border_color = Color("#fbc02d")
+			sb.border_color = Color("#ffd54f")
 		else:
-			sb.bg_color = Color("#e8f4fc")
+			sb.bg_color = Color(0.09, 0.13, 0.21, 0.9)
 			sb.set_border_width_all(2)
-			sb.border_color = Color("#cbe5f6")
+			sb.border_color = Color(0.25, 0.35, 0.50, 0.8)
 		card.add_theme_stylebox_override("panel", sb)
 
 		var c_width: float = card.size.x
@@ -551,7 +581,7 @@ func show_daily_reward_popup(parent: Node) -> void:
 		day_lbl.size = Vector2(c_width, 18)
 		day_lbl.add_theme_font_override("font", GAME_FONT)
 		day_lbl.add_theme_font_size_override("font_size", 12)
-		day_lbl.add_theme_color_override("font_color", Color("#0288d1") if is_today else Color("#546e7a"))
+		day_lbl.add_theme_color_override("font_color", Color("#ffd54f") if is_today else Color("#90a4ae"))
 		card.add_child(day_lbl)
 
 		# BIG COIN ICON / BADGE
@@ -571,7 +601,7 @@ func show_daily_reward_popup(parent: Node) -> void:
 			icon_lbl.position = Vector2(0, 28)
 			icon_lbl.size = Vector2(c_width, 42)
 			icon_lbl.add_theme_font_size_override("font_size", 32)
-			icon_lbl.add_theme_color_override("font_color", Color("#0288d1"))
+			icon_lbl.add_theme_color_override("font_color", Color("#4fc3f7"))
 			card.add_child(icon_lbl)
 
 		var reward_lbl := Label.new()
@@ -582,7 +612,7 @@ func show_daily_reward_popup(parent: Node) -> void:
 		reward_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 		reward_lbl.add_theme_font_override("font", GAME_FONT)
 		reward_lbl.add_theme_font_size_override("font_size", 12)
-		reward_lbl.add_theme_color_override("font_color", Color("#0d47a1") if is_today else Color("#455a64"))
+		reward_lbl.add_theme_color_override("font_color", Color.WHITE if is_today else Color("#b0bec5"))
 		card.add_child(reward_lbl)
 
 		cards_container.add_child(card)
@@ -593,7 +623,7 @@ func show_daily_reward_popup(parent: Node) -> void:
 	if can_claim:
 		var current_reward: Dictionary = DAILY_REWARDS[streak]
 		claim_btn.text = "CLAIM %s 🎁" % current_reward["label"].replace("\nGRAND PRIZE", "")
-		style_skyblue_button(claim_btn)
+		style_gold_button(claim_btn)
 		claim_btn.pressed.connect(func():
 			_record_claim(streak)
 			var coins_to_add: int = int(current_reward["coins"])
@@ -622,7 +652,7 @@ func show_in_app_update_popup(parent: Node) -> void:
 	var panel := Panel.new()
 	panel.size = Vector2(460, 400)
 	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#29a8ec"))
+	style_game_dialog(panel, Color("#ffd54f"))
 	parent.add_child(panel)
 
 	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
@@ -636,7 +666,7 @@ func show_in_app_update_popup(parent: Node) -> void:
 	eyebrow.size = Vector2(420, 20)
 	eyebrow.add_theme_font_override("font", GAME_FONT)
 	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#0288d1"))
+	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
 	panel.add_child(eyebrow)
 
 	var title := Label.new()
@@ -646,7 +676,9 @@ func show_in_app_update_popup(parent: Node) -> void:
 	title.size = Vector2(420, 44)
 	title.add_theme_font_override("font", GAME_FONT)
 	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", Color("#0d47a1"))
+	title.add_theme_color_override("font_color", Color("#ffd54f"))
+	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
+	title.add_theme_constant_override("outline_size", 6)
 	panel.add_child(title)
 
 	var desc := Label.new()
@@ -657,14 +689,16 @@ func show_in_app_update_popup(parent: Node) -> void:
 	desc.size = Vector2(400, 75)
 	desc.add_theme_font_override("font", GAME_FONT)
 	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color("#37474f"))
+	desc.add_theme_color_override("font_color", Color("#e0e8f5"))
+	desc.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	desc.add_theme_constant_override("outline_size", 2)
 	panel.add_child(desc)
 
 	var update_btn := Button.new()
 	update_btn.text = "UPDATE NOW 🚀"
 	update_btn.size = Vector2(350, 58)
 	update_btn.position = Vector2(55, 215)
-	style_skyblue_button(update_btn)
+	style_gold_button(update_btn)
 	update_btn.pressed.connect(func():
 		var ad_mgr = parent.get_node_or_null("/root/AdManager")
 		if ad_mgr and ad_mgr.has_method("start_in_app_update"):
@@ -691,7 +725,7 @@ func show_daily_challenge_popup(parent: Node) -> void:
 	var panel := Panel.new()
 	panel.size = Vector2(460, 430)
 	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#29a8ec"))
+	style_game_dialog(panel, Color("#ffd54f"))
 	parent.add_child(panel)
 
 	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
@@ -705,7 +739,7 @@ func show_daily_challenge_popup(parent: Node) -> void:
 	eyebrow.size = Vector2(420, 20)
 	eyebrow.add_theme_font_override("font", GAME_FONT)
 	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#0288d1"))
+	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
 	panel.add_child(eyebrow)
 
 	var title := Label.new()
@@ -715,7 +749,9 @@ func show_daily_challenge_popup(parent: Node) -> void:
 	title.size = Vector2(420, 44)
 	title.add_theme_font_override("font", GAME_FONT)
 	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", Color("#0d47a1"))
+	title.add_theme_color_override("font_color", Color("#ffd54f"))
+	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
+	title.add_theme_constant_override("outline_size", 6)
 	panel.add_child(title)
 
 	var desc := Label.new()
@@ -726,7 +762,9 @@ func show_daily_challenge_popup(parent: Node) -> void:
 	desc.size = Vector2(400, 75)
 	desc.add_theme_font_override("font", GAME_FONT)
 	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color("#37474f"))
+	desc.add_theme_color_override("font_color", Color("#e0e8f5"))
+	desc.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	desc.add_theme_constant_override("outline_size", 2)
 	panel.add_child(desc)
 
 	var play_btn := Button.new()

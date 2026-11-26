@@ -73,14 +73,28 @@ func _ready() -> void:
 func _apply_styles() -> void:
 	var panel := $Center/FrameBox/Panel
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("#f0faff") # Luminous Sky Blue Card
-	sb.border_color = Color("#29a8ec") # Crisp Sky Blue Border
+	sb.bg_color = Color(0.06, 0.09, 0.17, 0.96) # Dark fantasy midnight navy
+	sb.border_color = Color("#ffd54f") # Rich metallic gold border
 	sb.set_border_width_all(4)
 	sb.set_corner_radius_all(24)
-	sb.shadow_size = 14
-	sb.shadow_offset = Vector2(0, 8)
-	sb.shadow_color = Color(0.04, 0.16, 0.28, 0.40)
+	sb.shadow_size = 18
+	sb.shadow_offset = Vector2(0, 10)
+	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.65)
 	panel.add_theme_stylebox_override("panel", sb)
+
+	# Close Button Styling
+	var close_sb := StyleBoxFlat.new()
+	close_sb.bg_color = Color(0.85, 0.22, 0.22, 0.9)
+	close_sb.border_color = Color("#ffd54f")
+	close_sb.set_border_width_all(2)
+	close_sb.set_corner_radius_all(22)
+	close_btn.add_theme_stylebox_override("normal", close_sb)
+	var close_sb_hov = close_sb.duplicate() as StyleBoxFlat
+	close_sb_hov.bg_color = Color(0.95, 0.30, 0.30, 1.0)
+	close_btn.add_theme_stylebox_override("hover", close_sb_hov)
+	close_btn.add_theme_stylebox_override("pressed", close_sb)
+	close_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	close_btn.add_theme_color_override("font_color", Color.WHITE)
 
 func _update_balance() -> void:
 	var coins: int = GameManager.coins if GameManager else 0
@@ -110,13 +124,13 @@ func _create_item_card(data: Dictionary) -> PanelContainer:
 	card.custom_minimum_size = Vector2(430, 92)
 
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("#ffffff")
-	sb.border_color = Color("#90caf9") # Soft sky blue card border
+	sb.bg_color = Color(0.12, 0.17, 0.28, 0.95)
+	sb.border_color = Color(0.3, 0.45, 0.65, 0.8)
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(16)
-	sb.shadow_size = 4
+	sb.shadow_size = 6
 	sb.shadow_offset = Vector2(0, 3)
-	sb.shadow_color = Color(0.04, 0.16, 0.28, 0.15)
+	sb.shadow_color = Color(0, 0, 0, 0.35)
 	card.add_theme_stylebox_override("panel", sb)
 
 	var hbox := HBoxContainer.new()
@@ -158,19 +172,23 @@ func _create_item_card(data: Dictionary) -> PanelContainer:
 	title_lbl.text = data["title"]
 	title_lbl.add_theme_font_override("font", GAME_FONT)
 	title_lbl.add_theme_font_size_override("font_size", 17)
-	title_lbl.add_theme_color_override("font_color", Color("#0d47a1")) # Deep royal blue
+	title_lbl.add_theme_color_override("font_color", Color("#ffd54f")) # Rich metallic gold
+	title_lbl.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
+	title_lbl.add_theme_constant_override("outline_size", 4)
 	vbox.add_child(title_lbl)
 
 	var desc_lbl := Label.new()
 	desc_lbl.text = data["desc"]
 	desc_lbl.add_theme_font_override("font", GAME_FONT)
 	desc_lbl.add_theme_font_size_override("font_size", 12)
-	desc_lbl.add_theme_color_override("font_color", Color("#455a64"))
+	desc_lbl.add_theme_color_override("font_color", Color("#e0e8f5"))
+	desc_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
+	desc_lbl.add_theme_constant_override("outline_size", 2)
 	vbox.add_child(desc_lbl)
 
 	hbox.add_child(vbox)
 
-	# Buy Button
+	# Buy Button using game's button.png texture
 	var buy_btn := Button.new()
 	buy_btn.custom_minimum_size = Vector2(105, 48)
 
@@ -180,27 +198,47 @@ func _create_item_card(data: Dictionary) -> PanelContainer:
 		buy_btn.text = "OWNED ✓"
 		buy_btn.disabled = true
 		var dis_sb := StyleBoxFlat.new()
-		dis_sb.bg_color = Color("#b0bec5")
+		dis_sb.bg_color = Color(0.3, 0.35, 0.45, 0.8)
 		dis_sb.set_corner_radius_all(14)
 		buy_btn.add_theme_stylebox_override("disabled", dis_sb)
 		buy_btn.add_theme_font_override("font", GAME_FONT)
 		buy_btn.add_theme_font_size_override("font_size", 14)
+		buy_btn.add_theme_color_override("font_color", Color("#b0bec5"))
 	else:
 		buy_btn.text = data["price"]
-		var btn_sb := StyleBoxFlat.new()
-		# Sky Blue action button with dark border
-		btn_sb.bg_color = Color("#1ea4e9")
-		btn_sb.border_color = Color("#026aa7")
-		btn_sb.set_border_width_all(3)
-		btn_sb.set_corner_radius_all(14)
-		btn_sb.shadow_size = 4
-		btn_sb.shadow_offset = Vector2(0, 3)
-		btn_sb.shadow_color = Color(0.04, 0.16, 0.28, 0.3)
-		buy_btn.add_theme_stylebox_override("normal", btn_sb)
-		buy_btn.add_theme_stylebox_override("hover", btn_sb)
+		var btn_tex = preload("res://assets/main/button.png")
+		var sb_norm := StyleBoxTexture.new()
+		sb_norm.texture = btn_tex
+		sb_norm.texture_margin_left = 12.0
+		sb_norm.texture_margin_top = 10.0
+		sb_norm.texture_margin_right = 12.0
+		sb_norm.texture_margin_bottom = 10.0
+
+		var sb_hov := StyleBoxTexture.new()
+		sb_hov.texture = btn_tex
+		sb_hov.texture_margin_left = 12.0
+		sb_hov.texture_margin_top = 10.0
+		sb_hov.texture_margin_right = 12.0
+		sb_hov.texture_margin_bottom = 10.0
+		sb_hov.modulate_color = Color(1.1, 1.1, 1.2, 1.0)
+
+		var sb_press := StyleBoxTexture.new()
+		sb_press.texture = btn_tex
+		sb_press.texture_margin_left = 12.0
+		sb_press.texture_margin_top = 10.0
+		sb_press.texture_margin_right = 12.0
+		sb_press.texture_margin_bottom = 10.0
+		sb_press.modulate_color = Color(0.7, 0.7, 0.8, 1.0)
+
+		buy_btn.add_theme_stylebox_override("normal", sb_norm)
+		buy_btn.add_theme_stylebox_override("hover", sb_hov)
+		buy_btn.add_theme_stylebox_override("pressed", sb_press)
+		buy_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 		buy_btn.add_theme_font_override("font", GAME_FONT)
 		buy_btn.add_theme_font_size_override("font_size", 16)
-		buy_btn.add_theme_color_override("font_color", Color.WHITE)
+		buy_btn.add_theme_color_override("font_color", Color("#fff9c4"))
+		buy_btn.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
+		buy_btn.add_theme_constant_override("outline_size", 4)
 		buy_btn.pressed.connect(_on_buy_pressed.bind(data["id"]))
 
 	hbox.add_child(buy_btn)

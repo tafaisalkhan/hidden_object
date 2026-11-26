@@ -24,14 +24,19 @@ func _setup_coins_button():
 	coin_btn.expand_icon = true
 	coin_btn.text = " %d +" % coins_val
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color("#1ea4e9") # Vibrant Sky Blue
-	sb.border_color = Color("#ffffff") # Crisp white border
+	sb.bg_color = Color(0.06, 0.09, 0.17, 0.90) # Midnight navy
+	sb.border_color = Color("#ffd54f") # Rich metallic gold border
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(14)
 	coin_btn.add_theme_stylebox_override("normal", sb)
-	coin_btn.add_theme_stylebox_override("hover", sb)
+	var sb_hov = sb.duplicate() as StyleBoxFlat
+	sb_hov.bg_color = Color(0.12, 0.18, 0.28, 0.95)
+	coin_btn.add_theme_stylebox_override("hover", sb_hov)
+	coin_btn.add_theme_stylebox_override("pressed", sb)
+	coin_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	coin_btn.add_theme_font_override("font", preload("res://assets/fonts/LuckiestGuy-Regular.ttf"))
 	coin_btn.add_theme_font_size_override("font_size", 18)
-	coin_btn.add_theme_color_override("font_color", Color.WHITE)
+	coin_btn.add_theme_color_override("font_color", Color("#ffd54f"))
 	coin_btn.custom_minimum_size = Vector2(120, 44)
 	coin_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	coin_btn.pressed.connect(func():
