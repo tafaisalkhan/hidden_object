@@ -586,6 +586,10 @@ func _on_coffee_pressed() -> void:
 	if PopupManager:
 		PopupManager.show_support_coffee_popup(self)
 
+func _on_no_ads_today_pressed() -> void:
+	if PopupManager:
+		PopupManager.show_no_ads_today_popup(self)
+
 func _on_rate_pressed() -> void:
 	if PopupManager:
 		PopupManager.show_rate_popup(self)

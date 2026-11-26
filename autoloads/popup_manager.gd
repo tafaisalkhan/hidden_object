@@ -139,7 +139,7 @@ func style_secondary_button(btn: Button) -> void:
 
 func make_game_close_button(pos: Vector2) -> Button:
 	var btn := Button.new()
-	btn.text = "✕"
+	btn.text = "âœ•"
 	btn.position = pos
 	btn.size = Vector2(42, 42)
 	var sb := StyleBoxFlat.new()
@@ -180,619 +180,87 @@ func show_random_support_popup(parent: Node) -> void:
 		"coffee": show_support_coffee_popup(parent)
 		"no_ads": show_no_ads_today_popup(parent)
 
-# =================== 1. RATE POPUP ===================
-func show_rate_popup(parent: Node) -> void:
-	var bg := _create_dimmer(parent)
-	var panel := Panel.new()
-	panel.size = Vector2(460, 420)
-	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#ffd54f"))
-	parent.add_child(panel)
-
-	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
-	close_btn.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(close_btn)
-
-	var eyebrow := Label.new()
-	eyebrow.text = "YOUR FEEDBACK MATTERS"
-	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	eyebrow.position = Vector2(20, 24)
-	eyebrow.size = Vector2(420, 20)
-	eyebrow.add_theme_font_override("font", GAME_FONT)
-	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
-	panel.add_child(eyebrow)
-
-	var title := Label.new()
-	title.text = "Enjoying Difference Find?"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(20, 48)
-	title.size = Vector2(420, 44)
-	title.add_theme_font_override("font", GAME_FONT)
-	title.add_theme_font_size_override("font_size", 28)
-	title.add_theme_color_override("font_color", Color("#ffd54f"))
-	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
-	title.add_theme_constant_override("outline_size", 6)
-	panel.add_child(title)
-
-	var stars := Label.new()
-	stars.text = "★ ★ ★ ★ ★"
-	stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stars.position = Vector2(20, 96)
-	stars.size = Vector2(420, 32)
-	stars.add_theme_font_size_override("font_size", 28)
-	stars.add_theme_color_override("font_color", Color("#fbc02d"))
-	panel.add_child(stars)
-
-	var desc := Label.new()
-	desc.text = "Your rating helps us craft new mystery detective rooms!\nRate us 5 stars on Google Play to support future updates."
-	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD
-	desc.position = Vector2(30, 140)
-	desc.size = Vector2(400, 70)
-	desc.add_theme_font_override("font", GAME_FONT)
-	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color("#e0e8f5"))
-	desc.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-	desc.add_theme_constant_override("outline_size", 2)
-	panel.add_child(desc)
-
-	var rate_btn := Button.new()
-	rate_btn.text = "★ RATE 5 STARS ★"
-	rate_btn.size = Vector2(350, 58)
-	rate_btn.position = Vector2(55, 230)
-	style_gold_button(rate_btn)
-	rate_btn.pressed.connect(func():
-		var ad_mgr = parent.get_node_or_null("/root/AdManager")
-		if ad_mgr and ad_mgr.has_method("request_rate_app"):
-			ad_mgr.request_rate_app()
-		else:
-			OS.shell_open(PLAY_STORE_URL)
-		close_popup_animated(panel, bg)
-	)
-	panel.add_child(rate_btn)
-
-	var later_btn := Button.new()
-	later_btn.text = "Maybe Later"
-	later_btn.size = Vector2(220, 46)
-	later_btn.position = Vector2(120, 320)
-	style_secondary_button(later_btn)
-	later_btn.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(later_btn)
-
-	open_popup_animated(panel, bg)
-
-# =================== 2. SHARE POPUP ===================
-func show_share_popup(parent: Node) -> void:
-	var bg := _create_dimmer(parent)
-	var panel := Panel.new()
-	panel.size = Vector2(460, 420)
-	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#ffd54f"))
-	parent.add_child(panel)
-
-	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
-	close_btn.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(close_btn)
-
-	var eyebrow := Label.new()
-	eyebrow.text = "SPREAD THE MYSTERY"
-	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	eyebrow.position = Vector2(20, 24)
-	eyebrow.size = Vector2(420, 20)
-	eyebrow.add_theme_font_override("font", GAME_FONT)
-	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
-	panel.add_child(eyebrow)
-
-	var title := Label.new()
-	title.text = "Share With Friends 🔗"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(20, 48)
-	title.size = Vector2(420, 44)
-	title.add_theme_font_override("font", GAME_FONT)
-	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", Color("#ffd54f"))
-	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
-	title.add_theme_constant_override("outline_size", 6)
-	panel.add_child(title)
-
-	var desc := Label.new()
-	desc.text = "Challenge your friends to spot the hidden differences!\nShare the game link and see who solves it fastest."
-	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD
-	desc.position = Vector2(30, 105)
-	desc.size = Vector2(400, 75)
-	desc.add_theme_font_override("font", GAME_FONT)
-	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color("#e0e8f5"))
-	desc.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-	desc.add_theme_constant_override("outline_size", 2)
-	panel.add_child(desc)
-
-	var share_btn := Button.new()
-	share_btn.text = "🔗 SHARE GAME LINK"
-	share_btn.size = Vector2(350, 58)
-	share_btn.position = Vector2(55, 220)
-	style_skyblue_button(share_btn)
-	share_btn.pressed.connect(func():
-		var ad_mgr = parent.get_node_or_null("/root/AdManager")
-		if ad_mgr and ad_mgr.has_method("request_share_game"):
-			ad_mgr.request_share_game()
-		else:
-			DisplayServer.clipboard_set(PLAY_STORE_URL)
-		close_popup_animated(panel, bg)
-	)
-	panel.add_child(share_btn)
-
-	var close_btn2 := Button.new()
-	close_btn2.text = "Close"
-	close_btn2.size = Vector2(200, 46)
-	close_btn2.position = Vector2(130, 315)
-	style_secondary_button(close_btn2)
-	close_btn2.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(close_btn2)
-
-	open_popup_animated(panel, bg)
-
-# =================== 3. BUY COFFEE POPUP ($1.49) ===================
-func show_support_coffee_popup(parent: Node) -> void:
-	var bg := _create_dimmer(parent)
-	var panel := Panel.new()
-	panel.size = Vector2(460, 430)
-	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#ffd54f"))
-	parent.add_child(panel)
-
-	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
-	close_btn.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(close_btn)
-
-	var eyebrow := Label.new()
-	eyebrow.text = "DEVELOPER SUPPORT"
-	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	eyebrow.position = Vector2(20, 24)
-	eyebrow.size = Vector2(420, 20)
-	eyebrow.add_theme_font_override("font", GAME_FONT)
-	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
-	panel.add_child(eyebrow)
-
-	var title := Label.new()
-	title.text = "Buy Us A Coffee ☕"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(20, 48)
-	title.size = Vector2(420, 44)
-	title.add_theme_font_override("font", GAME_FONT)
-	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", Color("#ffd54f"))
-	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
-	title.add_theme_constant_override("outline_size", 6)
-	panel.add_child(title)
-
-	var desc := Label.new()
-	desc.text = "Support the development of Difference Find!\nGet +300 Bonus Coins as a warm thank-you gift."
-	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD
-	desc.position = Vector2(30, 105)
-	desc.size = Vector2(400, 75)
-	desc.add_theme_font_override("font", GAME_FONT)
-	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color("#e0e8f5"))
-	desc.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-	desc.add_theme_constant_override("outline_size", 2)
-	panel.add_child(desc)
-
-	var buy_btn := Button.new()
-	buy_btn.text = "☕ BUY COFFEE ($1.49)"
-	buy_btn.size = Vector2(350, 58)
-	buy_btn.position = Vector2(55, 220)
-	style_gold_button(buy_btn)
-	buy_btn.pressed.connect(func():
-		var billing = parent.get_node_or_null("/root/BillingManager")
-		if billing and billing.has_method("purchase_coffee"):
-			billing.purchase_coffee()
-		close_popup_animated(panel, bg)
-	)
-	panel.add_child(buy_btn)
-
-	var close_btn2 := Button.new()
-	close_btn2.text = "No Thanks"
-	close_btn2.size = Vector2(200, 46)
-	close_btn2.position = Vector2(130, 315)
-	style_secondary_button(close_btn2)
-	close_btn2.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(close_btn2)
-
-	open_popup_animated(panel, bg)
-
-# =================== 4. REMOVE ADS POPUP ($4.99) ===================
-func show_no_ads_today_popup(parent: Node) -> void:
-	var bg := _create_dimmer(parent)
-	var panel := Panel.new()
-	panel.size = Vector2(460, 430)
-	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#ffd54f"))
-	parent.add_child(panel)
-
-	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
-	close_btn.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(close_btn)
-
-	var eyebrow := Label.new()
-	eyebrow.text = "UNINTERRUPTED EXPERIENCE"
-	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	eyebrow.position = Vector2(20, 24)
-	eyebrow.size = Vector2(420, 20)
-	eyebrow.add_theme_font_override("font", GAME_FONT)
-	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
-	panel.add_child(eyebrow)
-
-	var title := Label.new()
-	title.text = "Remove All Ads 🚫"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(20, 48)
-	title.size = Vector2(420, 44)
-	title.add_theme_font_override("font", GAME_FONT)
-	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", Color("#ffd54f"))
-	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
-	title.add_theme_constant_override("outline_size", 6)
-	panel.add_child(title)
-
-	var desc := Label.new()
-	desc.text = "Enjoy pure detective rooms without banners or interstitials!\nOne-time purchase unlocks permanently ad-free gameplay."
-	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD
-	desc.position = Vector2(30, 105)
-	desc.size = Vector2(400, 75)
-	desc.add_theme_font_override("font", GAME_FONT)
-	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color("#e0e8f5"))
-	desc.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-	desc.add_theme_constant_override("outline_size", 2)
-	panel.add_child(desc)
-
-	var buy_btn := Button.new()
-	buy_btn.text = "🚫 REMOVE ADS ($4.99)"
-	buy_btn.size = Vector2(350, 58)
-	buy_btn.position = Vector2(55, 220)
-	style_primary_button(buy_btn, 22, Color("#fff9c4"))
-	buy_btn.pressed.connect(func():
-		var billing = parent.get_node_or_null("/root/BillingManager")
-		if billing and billing.has_method("purchase_remove_ads"):
-			billing.purchase_remove_ads()
-		close_popup_animated(panel, bg)
-	)
-	panel.add_child(buy_btn)
-
-	var close_btn2 := Button.new()
-	close_btn2.text = "Keep Ads"
-	close_btn2.size = Vector2(200, 46)
-	close_btn2.position = Vector2(130, 315)
-	style_secondary_button(close_btn2)
-	close_btn2.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(close_btn2)
-
-	open_popup_animated(panel, bg)
-
-# =================== 5. 7-DAY CONSECUTIVE DAILY REWARDS ===================
-func show_daily_reward_popup(parent: Node) -> void:
-	var streak: int = _load_streak()
-	var can_claim: bool = _can_claim_today()
-
-	var bg := _create_dimmer(parent)
-	var panel := Panel.new()
-	panel.size = Vector2(480, 620)
-	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#ffd54f"))
-	parent.add_child(panel)
-
-	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
-	close_btn.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(close_btn)
-
-	var eyebrow := Label.new()
-	eyebrow.text = "DAILY REWARD CALENDAR"
-	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	eyebrow.position = Vector2(20, 24)
-	eyebrow.size = Vector2(440, 20)
-	eyebrow.add_theme_font_override("font", GAME_FONT)
-	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
-	panel.add_child(eyebrow)
-
-	var title := Label.new()
-	title.text = "7-Day Consecutive Gifts 🎁"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(20, 48)
-	title.size = Vector2(440, 38)
-	title.add_theme_font_override("font", GAME_FONT)
-	title.add_theme_font_size_override("font_size", 28)
-	title.add_theme_color_override("font_color", Color("#ffd54f"))
-	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
-	title.add_theme_constant_override("outline_size", 6)
-	panel.add_child(title)
-
-	var subtitle := Label.new()
-	subtitle.text = "Log in every day to collect free coins for hints!"
-	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.position = Vector2(20, 86)
-	subtitle.size = Vector2(440, 22)
-	subtitle.add_theme_font_override("font", GAME_FONT)
-	subtitle.add_theme_font_size_override("font_size", 14)
-	subtitle.add_theme_color_override("font_color", Color("#b0bec5"))
-	panel.add_child(subtitle)
-
-	var cards_container := Control.new()
-	cards_container.position = Vector2(20, 116)
-	cards_container.size = Vector2(440, 390)
-	panel.add_child(cards_container)
-
-	for i in range(7):
-		var item: Dictionary = DAILY_REWARDS[i]
-		var card := Panel.new()
-		var is_grand_prize: bool = (i == 6)
-		var is_today: bool = (i == streak) and can_claim
-		var is_claimed: bool = (i < streak) or (i == streak and not can_claim)
-
-		if i < 4:
-			card.size = Vector2(100, 134)
-			card.position = Vector2(i * 112, 0)
-		elif i == 4:
-			card.size = Vector2(100, 134)
-			card.position = Vector2(0, 146)
-		elif i == 5:
-			card.size = Vector2(100, 134)
-			card.position = Vector2(112, 146)
-		elif i == 6:
-			card.size = Vector2(212, 134)
-			card.position = Vector2(224, 146)
-
-		var sb := StyleBoxFlat.new()
-		sb.set_corner_radius_all(18)
-		if is_today:
-			sb.bg_color = Color(0.18, 0.26, 0.40, 1.0)
-			sb.set_border_width_all(3)
-			sb.border_color = Color("#ffd54f") # Brilliant gold border
-			sb.shadow_size = 12
-			sb.shadow_color = Color(1.0, 0.85, 0.2, 0.35)
-		elif is_claimed:
-			sb.bg_color = Color(0.10, 0.14, 0.22, 0.9)
-			sb.set_border_width_all(2)
-			sb.border_color = Color("#4fc3f7")
-		elif is_grand_prize:
-			sb.bg_color = Color(0.20, 0.18, 0.10, 0.95)
-			sb.set_border_width_all(2)
-			sb.border_color = Color("#ffd54f")
-		else:
-			sb.bg_color = Color(0.09, 0.13, 0.21, 0.9)
-			sb.set_border_width_all(2)
-			sb.border_color = Color(0.25, 0.35, 0.50, 0.8)
-		card.add_theme_stylebox_override("panel", sb)
-
-		var c_width: float = card.size.x
-
-		var day_lbl := Label.new()
-		day_lbl.text = "DAY %d" % (i + 1)
-		day_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		day_lbl.position = Vector2(0, 8)
-		day_lbl.size = Vector2(c_width, 18)
-		day_lbl.add_theme_font_override("font", GAME_FONT)
-		day_lbl.add_theme_font_size_override("font_size", 12)
-		day_lbl.add_theme_color_override("font_color", Color("#ffd54f") if is_today else Color("#90a4ae"))
-		card.add_child(day_lbl)
-
-		# BIG COIN ICON / BADGE
-		if not is_claimed:
-			var coin_rect := TextureRect.new()
-			coin_rect.texture = COIN_TEXTURE
-			coin_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			coin_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			coin_rect.custom_minimum_size = Vector2(40, 40)
-			coin_rect.size = Vector2(40, 40)
-			coin_rect.position = Vector2((c_width - 40.0) * 0.5, 28)
-			card.add_child(coin_rect)
-		else:
-			var icon_lbl := Label.new()
-			icon_lbl.text = "✓"
-			icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			icon_lbl.position = Vector2(0, 28)
-			icon_lbl.size = Vector2(c_width, 42)
-			icon_lbl.add_theme_font_size_override("font_size", 32)
-			icon_lbl.add_theme_color_override("font_color", Color("#4fc3f7"))
-			card.add_child(icon_lbl)
-
-		var reward_lbl := Label.new()
-		reward_lbl.text = item["label"]
-		reward_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		reward_lbl.position = Vector2(4, 76)
-		reward_lbl.size = Vector2(c_width - 8, 48)
-		reward_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
-		reward_lbl.add_theme_font_override("font", GAME_FONT)
-		reward_lbl.add_theme_font_size_override("font_size", 12)
-		reward_lbl.add_theme_color_override("font_color", Color.WHITE if is_today else Color("#b0bec5"))
-		card.add_child(reward_lbl)
-
-		cards_container.add_child(card)
-
-	var claim_btn := Button.new()
-	claim_btn.size = Vector2(350, 58)
-	claim_btn.position = Vector2(65, 530)
-	if can_claim:
-		var current_reward: Dictionary = DAILY_REWARDS[streak]
-		claim_btn.text = "CLAIM %s 🎁" % current_reward["label"].replace("\nGRAND PRIZE", "")
-		style_gold_button(claim_btn)
-		claim_btn.pressed.connect(func():
-			_record_claim(streak)
-			var coins_to_add: int = int(current_reward["coins"])
-			var spawn_pos: Vector2 = claim_btn.global_position + claim_btn.size * 0.5
-			var target_pos: Vector2 = get_top_hud_coins_position(parent)
-			
-			play_flying_coins_effect(parent, spawn_pos, target_pos, func():
-				if GameManager:
-					GameManager.add_coins(coins_to_add)
-				if parent.has_method("update_coins_display"):
-					parent.update_coins_display()
-				close_popup_animated(panel, bg)
-			)
-		)
-	else:
-		claim_btn.text = "COME BACK TOMORROW"
-		style_secondary_button(claim_btn)
-		claim_btn.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(claim_btn)
-
-	open_popup_animated(panel, bg)
-
-# =================== 6. IN-APP UPDATE POPUP ===================
-func show_in_app_update_popup(parent: Node) -> void:
-	var bg := _create_dimmer(parent)
-	var panel := Panel.new()
-	panel.size = Vector2(460, 400)
-	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#ffd54f"))
-	parent.add_child(panel)
-
-	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
-	close_btn.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(close_btn)
-
-	var eyebrow := Label.new()
-	eyebrow.text = "NEW UPDATE AVAILABLE"
-	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	eyebrow.position = Vector2(20, 24)
-	eyebrow.size = Vector2(420, 20)
-	eyebrow.add_theme_font_override("font", GAME_FONT)
-	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
-	panel.add_child(eyebrow)
-
-	var title := Label.new()
-	title.text = "Fresh Mystery Rooms! 🚀"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(20, 50)
-	title.size = Vector2(420, 44)
-	title.add_theme_font_override("font", GAME_FONT)
-	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", Color("#ffd54f"))
-	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
-	title.add_theme_constant_override("outline_size", 6)
-	panel.add_child(title)
-
-	var desc := Label.new()
-	desc.text = "A brand new version of Difference Find is available on Google Play!\nUpdate now for brand new levels and performance optimizations."
-	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD
-	desc.position = Vector2(30, 110)
-	desc.size = Vector2(400, 75)
-	desc.add_theme_font_override("font", GAME_FONT)
-	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color("#e0e8f5"))
-	desc.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-	desc.add_theme_constant_override("outline_size", 2)
-	panel.add_child(desc)
-
-	var update_btn := Button.new()
-	update_btn.text = "UPDATE NOW 🚀"
-	update_btn.size = Vector2(350, 58)
-	update_btn.position = Vector2(55, 215)
-	style_gold_button(update_btn)
-	update_btn.pressed.connect(func():
-		var ad_mgr = parent.get_node_or_null("/root/AdManager")
-		if ad_mgr and ad_mgr.has_method("start_in_app_update"):
-			ad_mgr.start_in_app_update()
-		else:
-			OS.shell_open(PLAY_STORE_URL)
-		close_popup_animated(panel, bg)
-	)
-	panel.add_child(update_btn)
-
-	var later_btn := Button.new()
-	later_btn.text = "Maybe Later"
-	later_btn.size = Vector2(200, 46)
-	later_btn.position = Vector2(130, 310)
-	style_secondary_button(later_btn)
-	later_btn.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(later_btn)
-
-	open_popup_animated(panel, bg)
-
-# =================== 7. DAILY CHALLENGE POPUP ===================
-func show_daily_challenge_popup(parent: Node) -> void:
-	var bg := _create_dimmer(parent)
-	var panel := Panel.new()
-	panel.size = Vector2(460, 430)
-	panel.position = (parent.get_viewport().get_visible_rect().size - panel.size) * 0.5
-	style_game_dialog(panel, Color("#ffd54f"))
-	parent.add_child(panel)
-
-	var close_btn := make_game_close_button(Vector2(panel.size.x - 56, 14))
-	close_btn.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(close_btn)
-
-	var eyebrow := Label.new()
-	eyebrow.text = "TODAY'S SPECIAL MISSION"
-	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	eyebrow.position = Vector2(20, 24)
-	eyebrow.size = Vector2(420, 20)
-	eyebrow.add_theme_font_override("font", GAME_FONT)
-	eyebrow.add_theme_font_size_override("font_size", 14)
-	eyebrow.add_theme_color_override("font_color", Color("#81d4fa"))
-	panel.add_child(eyebrow)
-
-	var title := Label.new()
-	title.text = "Daily Challenge 🏆"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(20, 48)
-	title.size = Vector2(420, 44)
-	title.add_theme_font_override("font", GAME_FONT)
-	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", Color("#ffd54f"))
-	title.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
-	title.add_theme_constant_override("outline_size", 6)
-	panel.add_child(title)
-
-	var desc := Label.new()
-	desc.text = "Complete today's mystery challenge to earn 100 Bonus Coins! 🪙\nEnjoy 100% free retries: 0 coins deducted if you fail."
-	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD
-	desc.position = Vector2(30, 105)
-	desc.size = Vector2(400, 75)
-	desc.add_theme_font_override("font", GAME_FONT)
-	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color("#e0e8f5"))
-	desc.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-	desc.add_theme_constant_override("outline_size", 2)
-	panel.add_child(desc)
-
-	var play_btn := Button.new()
-	play_btn.text = "START CHALLENGE 🏆"
-	play_btn.size = Vector2(350, 58)
-	play_btn.position = Vector2(55, 220)
-	style_gold_button(play_btn)
-	play_btn.pressed.connect(func():
-		close_popup_animated(panel, bg, func():
-			if GameManager:
-				GameManager.is_daily_challenge_mode = true
-				GameManager.selected_category_id = "drawing_room"
-				GameManager.selected_sublevel_id = "sub1"
-			parent.get_tree().change_scene_to_file("res://main/main.tscn")
-		)
-	)
-	panel.add_child(play_btn)
-
-	var close_btn2 := Button.new()
-	close_btn2.text = "Close"
-	close_btn2.size = Vector2(200, 46)
-	close_btn2.position = Vector2(130, 315)
-	style_secondary_button(close_btn2)
-	close_btn2.pressed.connect(func(): close_popup_animated(panel, bg))
-	panel.add_child(close_btn2)
-
-	open_popup_animated(panel, bg)
-
+# =================== POPUP INSTANTIATION SUITE ===================
+
+func show_rate_popup(parent: Node = null) -> void:
+	_spawn_popup_scene("res://scenes/popups/rate_popup.tscn", parent)
+
+func show_share_popup(parent: Node = null) -> void:
+	_spawn_popup_scene("res://scenes/popups/share_popup.tscn", parent)
+
+func show_support_coffee_popup(parent: Node = null) -> void:
+	_spawn_popup_scene("res://scenes/popups/coffee_popup.tscn", parent)
+
+func show_no_ads_today_popup(parent: Node = null) -> void:
+	_spawn_popup_scene("res://scenes/popups/no_ads_popup.tscn", parent)
+
+func show_daily_reward_popup(parent: Node = null) -> void:
+	_spawn_popup_scene("res://scenes/popups/daily_reward_popup.tscn", parent)
+
+func show_daily_challenge_popup(parent: Node = null) -> void:
+	_spawn_popup_scene("res://scenes/popups/daily_challenge_popup.tscn", parent)
+
+func show_in_app_update_popup(parent: Node = null) -> void:
+	_spawn_popup_scene("res://scenes/popups/update_popup.tscn", parent)
+
+func _spawn_popup_scene(scene_path: String, parent: Node = null) -> Node:
+	var target = parent if parent else get_tree().current_scene
+	if not target and get_tree().root:
+		target = get_tree().root
+	var scene = load(scene_path)
+	if scene and target:
+		var inst = scene.instantiate()
+		target.add_child(inst)
+		return inst
+	return null
+
+func claim_daily_reward(caller: Node = null) -> int:
+	var streak = _load_streak()
+	var reward_coins: int = [50, 75, 100, 150, 200, 250, 500][streak % 7]
+	_record_claim(streak)
+	if GameManager:
+		GameManager.add_coins(reward_coins)
+	return reward_coins
+
+func get_daily_challenge_progress() -> int:
+	var cfg := ConfigFile.new()
+	if cfg.load(DAILY_SAVE_PATH) == OK:
+		var today_str := _get_today_str()
+		if cfg.get_value("challenge", "date", "") == today_str:
+			return int(cfg.get_value("challenge", "progress", 0))
+	return 4 # Demo progress
+
+func add_daily_challenge_progress(amount: int = 1) -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(DAILY_SAVE_PATH)
+	var today_str := _get_today_str()
+	if cfg.get_value("challenge", "date", "") != today_str:
+		cfg.set_value("challenge", "date", today_str)
+		cfg.set_value("challenge", "progress", 0)
+		cfg.set_value("challenge", "completed", false)
+	var cur = int(cfg.get_value("challenge", "progress", 0)) + amount
+	cfg.set_value("challenge", "progress", cur)
+	cfg.save(DAILY_SAVE_PATH)
+
+func is_daily_challenge_completed() -> bool:
+	var cfg := ConfigFile.new()
+	if cfg.load(DAILY_SAVE_PATH) == OK:
+		var today_str := _get_today_str()
+		if cfg.get_value("challenge", "date", "") == today_str:
+			return bool(cfg.get_value("challenge", "completed", false))
+	return false
+
+func claim_daily_challenge(caller: Node = null) -> int:
+	var cfg := ConfigFile.new()
+	cfg.load(DAILY_SAVE_PATH)
+	var today_str := _get_today_str()
+	cfg.set_value("challenge", "date", today_str)
+	cfg.set_value("challenge", "completed", true)
+	cfg.save(DAILY_SAVE_PATH)
+	var reward = 150
+	if GameManager:
+		GameManager.add_coins(reward)
+	return reward
 
 # =================== FLYING COIN BURST ANIMATION TO TOP HUD ===================
 func get_top_hud_coins_position(node: Node) -> Vector2:

@@ -126,6 +126,35 @@ func _ready():
 	else:
 		print("[FAIL] Test 6: Could not load main_menu.tscn or upper_hud.tscn")
 
+	# Test 7: Verify all 7 standalone popup scenes instantiate properly
+	total += 1
+	var popups := [
+		"res://scenes/popups/rate_popup.tscn",
+		"res://scenes/popups/share_popup.tscn",
+		"res://scenes/popups/coffee_popup.tscn",
+		"res://scenes/popups/no_ads_popup.tscn",
+		"res://scenes/popups/daily_reward_popup.tscn",
+		"res://scenes/popups/daily_challenge_popup.tscn",
+		"res://scenes/popups/update_popup.tscn"
+	]
+	var all_popups_ok := true
+	for p_path in popups:
+		var p_res = load(p_path)
+		if p_res:
+			var p_node = p_res.instantiate()
+			if not p_node:
+				all_popups_ok = false
+			p_node.queue_free()
+		else:
+			all_popups_ok = false
+			print("[FAIL] Test 7: Failed to load: ", p_path)
+	
+	if all_popups_ok:
+		print("[PASS] Test 7: All 7 standalone popup scenes loaded and instantiated successfully")
+		passed += 1
+	else:
+		print("[FAIL] Test 7: One or more popup scenes failed to instantiate")
+
 	print("\n=== VERIFICATION RESULT: %d/%d PASSED ===" % [passed, total])
 	if passed == total:
 		print("ALL CHECKS PASSED PERFECTLY!\n")

@@ -425,6 +425,18 @@ theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
 text = "🚫 Remove Ads"
 
+[node name="NoAdsTodayBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
+custom_minimum_size = Vector2(280, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.6, 1, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "🎬 Free No-Ads (24h)"
+
 [node name="CoffeeBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
 custom_minimum_size = Vector2(280, 48)
 layout_mode = 2
@@ -507,6 +519,7 @@ text = "Close"
 [connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/SoundToggleBtn" to="." method="_on_sound_toggle_pressed"]
 [connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/MusicToggleBtn" to="." method="_on_music_toggle_pressed"]
 [connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/RemoveAdsBtn" to="." method="_on_remove_ads_pressed"]
+[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/NoAdsTodayBtn" to="." method="_on_no_ads_today_pressed"]
 [connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/CoffeeBtn" to="." method="_on_coffee_pressed"]
 [connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/RateUsBtn" to="." method="_on_rate_pressed"]
 [connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/ShareBtn" to="." method="_on_share_pressed"]
