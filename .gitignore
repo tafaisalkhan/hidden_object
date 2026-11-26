@@ -27,3 +27,6 @@ build/
 *.mp3
 *.ogg
 
+
+# Android template and build
+android/
