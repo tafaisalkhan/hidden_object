@@ -64,19 +64,19 @@ func _ready():
 
 	# Test 4: StoreUI Scene Instantiation
 	total += 1
-	var store_scene = load("res://scenes/ui_screens/store_ui.tscn")
+	var store_scene = load("res://scenes/popups/store_popup.tscn")
 	if store_scene:
 		var store = store_scene.instantiate()
 		add_child(store)
-		var items_container = store.get_node_or_null("Center/FrameBox/Panel/Layout/Scroll/Items")
+		var items_container = store.get_node_or_null("Dimmer/Center/FrameBox/Panel/Margin/Layout/Scroll/Items")
 		if items_container and items_container.get_child_count() == 5:
-			print("[PASS] Test 4: StoreUI instantiated successfully with 5 items")
+			print("[PASS] Test 4: StorePopup instantiated successfully with 5 items")
 			passed += 1
 		else:
-			print("[FAIL] Test 4: StoreUI child count mismatch")
+			print("[FAIL] Test 4: StorePopup child count mismatch")
 		store.queue_free()
 	else:
-		print("[FAIL] Test 4: Failed to load store_ui.tscn")
+		print("[FAIL] Test 4: Failed to load store_popup.tscn")
 
 	# Test 5: PopupManager Streak Logic & Flying Coin Animation
 	total += 1
@@ -100,33 +100,32 @@ func _ready():
 	else:
 		print("[FAIL] Test 5: PopupManager not found in root")
 
-	# Test 6: Verify MainMenu & UpperHUD Nodes exist natively in scene files
+	# Test 6: Verify MainMenu proportional nodes exist natively in scene file
 	total += 1
 	var menu_scene = load("res://main/main_menu.tscn")
 	var hud_scene = load("res://hud/upper_hud.tscn")
 	if menu_scene and hud_scene:
 		var menu = menu_scene.instantiate()
 		var hud = hud_scene.instantiate()
-		var has_store_btn = menu.get_node_or_null("MainButtonsPanel/VBoxContainer/StoreButton") != null
-		var has_gifts_btn = menu.get_node_or_null("MainButtonsPanel/VBoxContainer/DailyGiftsButton") != null
-		var has_challenge_btn = menu.get_node_or_null("MainButtonsPanel/VBoxContainer/DailyChallengeButton") != null
-		var has_menu_coins = menu.get_node_or_null("MenuCoinsBtn") != null
-		var has_coffee_btn = menu.get_node_or_null("SettingsPanel/CenterContainer/VBox/CoffeeBtn") != null
-		var has_rate_btn = menu.get_node_or_null("SettingsPanel/CenterContainer/VBox/RateUsBtn") != null
-		var has_share_btn = menu.get_node_or_null("SettingsPanel/CenterContainer/VBox/ShareBtn") != null
+		var has_settings_btn = menu.get_node_or_null("TopBar/SettingsButton") != null
+		var has_store_btn = menu.get_node_or_null("TopBar/RightHBox/StoreButton") != null
+		var has_menu_coins = menu.get_node_or_null("TopBar/RightHBox/MenuCoinsBtn") != null
+		var has_start_btn = menu.get_node_or_null("MainButtonsPanel/VBoxContainer/StartButton") != null
+		var has_gifts_btn = menu.get_node_or_null("MainButtonsPanel/VBoxContainer/SecondaryRow/DailyGiftsButton") != null
+		var has_challenge_btn = menu.get_node_or_null("MainButtonsPanel/VBoxContainer/SecondaryRow/DailyChallengeButton") != null
 		var has_hud_coins = hud.get_node_or_null("MarginContainer/HBoxContainer/CoinsBtn") != null
 		
-		if has_store_btn and has_gifts_btn and has_challenge_btn and has_menu_coins and has_coffee_btn and has_rate_btn and has_share_btn and has_hud_coins:
-			print("[PASS] Test 6: MainMenu & UpperHUD persistent buttons verified in scene tree")
+		if has_settings_btn and has_store_btn and has_menu_coins and has_start_btn and has_gifts_btn and has_challenge_btn and has_hud_coins:
+			print("[PASS] Test 6: MainMenu proportional layout and UpperHUD buttons verified")
 			passed += 1
 		else:
-			print("[FAIL] Test 6: Missing one or more persistent buttons in scene tree")
+			print("[FAIL] Test 6: Missing one or more proportional buttons in scene tree")
 		menu.queue_free()
 		hud.queue_free()
 	else:
 		print("[FAIL] Test 6: Could not load main_menu.tscn or upper_hud.tscn")
 
-	# Test 7: Verify all 7 standalone popup scenes instantiate properly
+	# Test 7: Verify all 9 standalone popup scenes instantiate properly
 	total += 1
 	var popups := [
 		"res://scenes/popups/rate_popup.tscn",
@@ -135,7 +134,9 @@ func _ready():
 		"res://scenes/popups/no_ads_popup.tscn",
 		"res://scenes/popups/daily_reward_popup.tscn",
 		"res://scenes/popups/daily_challenge_popup.tscn",
-		"res://scenes/popups/update_popup.tscn"
+		"res://scenes/popups/update_popup.tscn",
+		"res://scenes/popups/settings_popup.tscn",
+		"res://scenes/popups/store_popup.tscn"
 	]
 	var all_popups_ok := true
 	for p_path in popups:
@@ -150,7 +151,7 @@ func _ready():
 			print("[FAIL] Test 7: Failed to load: ", p_path)
 	
 	if all_popups_ok:
-		print("[PASS] Test 7: All 7 standalone popup scenes loaded and instantiated successfully")
+		print("[PASS] Test 7: All 9 standalone popup scenes loaded and instantiated successfully")
 		passed += 1
 	else:
 		print("[FAIL] Test 7: One or more popup scenes failed to instantiate")

@@ -22,7 +22,7 @@ texture_margin_left = 15.0
 texture_margin_top = 15.0
 texture_margin_right = 15.0
 texture_margin_bottom = 15.0
-modulate_color = Color(0.9, 0.9, 1.1, 1)
+modulate_color = Color(1.05, 1.05, 1.15, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_pressed"]
 texture = ExtResource("3_btn_bg")
@@ -84,16 +84,56 @@ texture = ExtResource("2_bg")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="MenuCoinsBtn" type="Button" parent="."]
+[node name="TopBar" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 80.0
+grow_horizontal = 2
+
+[node name="SettingsButton" type="Button" parent="TopBar"]
+layout_mode = 1
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 164.0
+offset_bottom = 70.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("8_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "⚙ SETTINGS"
+
+[node name="RightHBox" type="HBoxContainer" parent="TopBar"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -190.0
+offset_left = -340.0
 offset_top = 20.0
-offset_right = -20.0
+offset_right = -24.0
 offset_bottom = 70.0
 grow_horizontal = 0
+theme_override_constants/separation = 12
+alignment = 2
+
+[node name="StoreButton" type="Button" parent="TopBar/RightHBox"]
+custom_minimum_size = Vector2(130, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.6, 1)
+theme_override_fonts/font = ExtResource("8_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "🛒 STORE"
+
+[node name="MenuCoinsBtn" type="Button" parent="TopBar/RightHBox"]
+custom_minimum_size = Vector2(160, 50)
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.835294, 0.309804, 1)
 theme_override_fonts/font = ExtResource("8_font")
 theme_override_font_sizes/font_size = 20
@@ -115,16 +155,16 @@ grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MainButtonsPanel"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 16
 alignment = 1
 
 [node name="HeadingContainer" type="VBoxContainer" parent="MainButtonsPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = -16
+theme_override_constants/separation = -18
 alignment = 1
 
 [node name="Hidden" type="TextureRect" parent="MainButtonsPanel/VBoxContainer/HeadingContainer"]
-custom_minimum_size = Vector2(320, 85)
+custom_minimum_size = Vector2(340, 95)
 layout_mode = 2
 size_flags_horizontal = 4
 texture = ExtResource("4_hidden")
@@ -132,7 +172,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Object" type="TextureRect" parent="MainButtonsPanel/VBoxContainer/HeadingContainer"]
-custom_minimum_size = Vector2(260, 65)
+custom_minimum_size = Vector2(280, 75)
 layout_mode = 2
 size_flags_horizontal = 4
 texture = ExtResource("5_object")
@@ -140,87 +180,67 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Adventure" type="TextureRect" parent="MainButtonsPanel/VBoxContainer/HeadingContainer"]
-custom_minimum_size = Vector2(210, 48)
+custom_minimum_size = Vector2(230, 60)
 layout_mode = 2
 size_flags_horizontal = 4
 texture = ExtResource("6_adventure")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="StartButton" type="Button" parent="MainButtonsPanel/VBoxContainer"]
-custom_minimum_size = Vector2(270, 58)
+[node name="CenterSpacer" type="Control" parent="MainButtonsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
+
+[node name="StartButton" type="Button" parent="MainButtonsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(280, 75)
+layout_mode = 2
+size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(0.9, 0.9, 1, 1)
+theme_override_colors/font_hover_color = Color(0.95, 0.95, 1, 1)
 theme_override_colors/font_pressed_color = Color(0.7, 0.7, 0.8, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
 theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 26
+theme_override_fonts/font = ExtResource("8_font")
+theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
 text = "Start Game"
 
-[node name="DailyChallengeButton" type="Button" parent="MainButtonsPanel/VBoxContainer"]
-custom_minimum_size = Vector2(270, 58)
+[node name="SecondaryRow" type="HBoxContainer" parent="MainButtonsPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(0.9, 0.9, 1, 1)
-theme_override_colors/font_pressed_color = Color(0.7, 0.7, 0.8, 1)
-theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
-theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 22
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "🏆 Daily Challenge"
+size_flags_horizontal = 4
+theme_override_constants/separation = 16
+alignment = 1
 
-[node name="DailyGiftsButton" type="Button" parent="MainButtonsPanel/VBoxContainer"]
-custom_minimum_size = Vector2(270, 58)
+[node name="DailyGiftsButton" type="Button" parent="MainButtonsPanel/VBoxContainer/SecondaryRow"]
+custom_minimum_size = Vector2(205, 54)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(0.9, 0.9, 1, 1)
-theme_override_colors/font_pressed_color = Color(0.7, 0.7, 0.8, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
-theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 22
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("8_font")
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
 text = "🎁 Daily Gifts"
 
-[node name="StoreButton" type="Button" parent="MainButtonsPanel/VBoxContainer"]
-custom_minimum_size = Vector2(270, 58)
+[node name="DailyChallengeButton" type="Button" parent="MainButtonsPanel/VBoxContainer/SecondaryRow"]
+custom_minimum_size = Vector2(205, 54)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(0.9, 0.9, 1, 1)
-theme_override_colors/font_pressed_color = Color(0.7, 0.7, 0.8, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
-theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 22
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("8_font")
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "🛒 Store"
-
-[node name="SettingsButton" type="Button" parent="MainButtonsPanel/VBoxContainer"]
-custom_minimum_size = Vector2(270, 58)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(0.9, 0.9, 1, 1)
-theme_override_colors/font_pressed_color = Color(0.7, 0.7, 0.8, 1)
-theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
-theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 22
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "⚙ Settings"
+text = "🏆 Daily Challenge"
 
 [node name="CategorySelectPanel" type="Control" parent="."]
 visible = false
@@ -256,7 +276,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
 theme_override_constants/outline_size = 14
 theme_override_font_sizes/font_size = 44
-text = "SELECT GAME TYPE"
+text = "SELECT CATEGORY"
 horizontal_alignment = 1
 
 [node name="ScrollContainer" type="ScrollContainer" parent="CategorySelectPanel/VBox"]
@@ -278,7 +298,7 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
-theme_override_constants/outline_size = 6
+theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
@@ -320,7 +340,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
 theme_override_constants/outline_size = 14
 theme_override_font_sizes/font_size = 44
-text = "LIVING ROOM - LEVELS"
+text = "LEVELS"
 horizontal_alignment = 1
 
 [node name="ScrollContainer" type="ScrollContainer" parent="LevelSelectPanel/VBox"]
@@ -342,7 +362,7 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
-theme_override_constants/outline_size = 6
+theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
@@ -350,179 +370,11 @@ theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
 text = "◄ Back"
 
-[node name="SettingsPanel" type="Control" parent="."]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="OverlayBg" type="ColorRect" parent="SettingsPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.05, 0.08, 0.15, 0.88)
-
-[node name="CenterContainer" type="CenterContainer" parent="SettingsPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="VBox" type="VBoxContainer" parent="SettingsPanel/CenterContainer"]
-custom_minimum_size = Vector2(360, 580)
-layout_mode = 2
-theme_override_constants/separation = 10
-alignment = 1
-
-[node name="SettingsTitle" type="Label" parent="SettingsPanel/CenterContainer/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
-theme_override_constants/outline_size = 14
-theme_override_font_sizes/font_size = 36
-text = "SETTINGS"
-horizontal_alignment = 1
-
-[node name="SoundToggleBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
-custom_minimum_size = Vector2(280, 48)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "Sound FX: ON"
-
-[node name="MusicToggleBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
-custom_minimum_size = Vector2(280, 48)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "Music: ON"
-
-[node name="RemoveAdsBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
-custom_minimum_size = Vector2(280, 48)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "🚫 Remove Ads"
-
-[node name="NoAdsTodayBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
-custom_minimum_size = Vector2(280, 48)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.6, 1, 0.7, 1)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "🎬 Free No-Ads (24h)"
-
-[node name="CoffeeBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
-custom_minimum_size = Vector2(280, 48)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "☕ Buy Coffee $1.49"
-
-[node name="RateUsBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
-custom_minimum_size = Vector2(280, 48)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "⭐ Rate Us"
-
-[node name="ShareBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
-custom_minimum_size = Vector2(280, 48)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "📤 Share Game"
-
-[node name="UpdateBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
-custom_minimum_size = Vector2(280, 48)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "🚀 Check Updates"
-
-[node name="RestorePurchasesBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
-custom_minimum_size = Vector2(280, 44)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.8, 0.85, 0.95, 1)
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "🔄 Restore Purchases"
-
-[node name="SettingsCloseBtn" type="Button" parent="SettingsPanel/CenterContainer/VBox"]
-custom_minimum_size = Vector2(180, 48)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 22
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "Close"
-
-[connection signal="pressed" from="MenuCoinsBtn" to="." method="_open_store"]
+[connection signal="pressed" from="TopBar/SettingsButton" to="." method="_on_settings_button_pressed"]
+[connection signal="pressed" from="TopBar/RightHBox/StoreButton" to="." method="_open_store"]
+[connection signal="pressed" from="TopBar/RightHBox/MenuCoinsBtn" to="." method="_open_store"]
 [connection signal="pressed" from="MainButtonsPanel/VBoxContainer/StartButton" to="." method="_on_start_button_pressed"]
-[connection signal="pressed" from="MainButtonsPanel/VBoxContainer/DailyChallengeButton" to="." method="_on_daily_challenge_pressed"]
-[connection signal="pressed" from="MainButtonsPanel/VBoxContainer/DailyGiftsButton" to="." method="_on_daily_gifts_pressed"]
-[connection signal="pressed" from="MainButtonsPanel/VBoxContainer/StoreButton" to="." method="_open_store"]
-[connection signal="pressed" from="MainButtonsPanel/VBoxContainer/SettingsButton" to="." method="_on_settings_button_pressed"]
+[connection signal="pressed" from="MainButtonsPanel/VBoxContainer/SecondaryRow/DailyGiftsButton" to="." method="_on_daily_gifts_pressed"]
+[connection signal="pressed" from="MainButtonsPanel/VBoxContainer/SecondaryRow/DailyChallengeButton" to="." method="_on_daily_challenge_pressed"]
 [connection signal="pressed" from="CategorySelectPanel/VBox/CategoryBackBtn" to="." method="_on_category_back_pressed"]
 [connection signal="pressed" from="LevelSelectPanel/VBox/LevelSelectBackBtn" to="." method="_on_level_select_back_pressed"]
-[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/SoundToggleBtn" to="." method="_on_sound_toggle_pressed"]
-[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/MusicToggleBtn" to="." method="_on_music_toggle_pressed"]
-[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/RemoveAdsBtn" to="." method="_on_remove_ads_pressed"]
-[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/NoAdsTodayBtn" to="." method="_on_no_ads_today_pressed"]
-[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/CoffeeBtn" to="." method="_on_coffee_pressed"]
-[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/RateUsBtn" to="." method="_on_rate_pressed"]
-[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/ShareBtn" to="." method="_on_share_pressed"]
-[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/UpdateBtn" to="." method="_on_update_pressed"]
-[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/RestorePurchasesBtn" to="." method="_on_restore_purchases_pressed"]
-[connection signal="pressed" from="SettingsPanel/CenterContainer/VBox/SettingsCloseBtn" to="." method="_on_settings_close_pressed"]

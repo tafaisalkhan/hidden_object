@@ -3,7 +3,6 @@ extends Control
 @onready var main_buttons_panel = $MainButtonsPanel
 @onready var category_select_panel = $CategorySelectPanel
 @onready var level_select_panel = $LevelSelectPanel
-@onready var settings_panel = $SettingsPanel
 
 @onready var category_scroll = $CategorySelectPanel/VBox/ScrollContainer
 @onready var level_scroll = $LevelSelectPanel/VBox/ScrollContainer
@@ -11,11 +10,6 @@ extends Control
 @onready var category_grid_container = $CategorySelectPanel/VBox/ScrollContainer/CategoryGridContainer
 @onready var level_grid_container = $LevelSelectPanel/VBox/ScrollContainer/GridContainer
 @onready var level_header_title = $LevelSelectPanel/VBox/HeaderTitle
-
-@onready var sound_toggle_btn = $SettingsPanel/CenterContainer/VBox/SoundToggleBtn
-@onready var music_toggle_btn = $SettingsPanel/CenterContainer/VBox/MusicToggleBtn
-@onready var remove_ads_btn = $SettingsPanel/CenterContainer/VBox/RemoveAdsBtn
-@onready var restore_purchases_btn = $SettingsPanel/CenterContainer/VBox/RestorePurchasesBtn
 
 var current_category_title: String = "Living Room"
 
@@ -35,7 +29,6 @@ var lvl_drag_start_pos: Vector2 = Vector2.ZERO
 var lvl_last_drag_time: int = 0
 
 func _ready():
-	SignalHub.ads_removed.connect(_update_settings_ui)
 	AdManager.show_banner()
 	
 	# Play menu background music (crossfades from game music if returning)
@@ -51,7 +44,6 @@ func _ready():
 		GameManager.return_to_level_select = false
 		main_buttons_panel.visible = false
 		category_select_panel.visible = false
-		settings_panel.visible = false
 		
 		# Open level select directly for the active category
 		var cat_id = GameManager.selected_category_id if GameManager.selected_category_id != "" else "drawing_room"
@@ -63,14 +55,18 @@ func _ready():
 		main_buttons_panel.visible = true
 		category_select_panel.visible = false
 		level_select_panel.visible = false
-		settings_panel.visible = false
 
 	_setup_extra_ui()
-	_update_settings_ui()
 
+	# Ant War style launch automation
 	get_tree().create_timer(0.6).timeout.connect(func():
-		if is_instance_valid(self) and PopupManager and PopupManager._can_claim_today():
-			PopupManager.show_daily_reward_popup(self)
+		if not is_instance_valid(self):
+			return
+		if PopupManager:
+			if PopupManager.can_claim_daily_reward():
+				PopupManager.show_daily_reward_popup(self)
+			elif PopupManager.has_method("show_random_support_popup"):
+				PopupManager.show_random_support_popup(self)
 	)
 
 func _process(delta: float) -> void:
@@ -106,8 +102,8 @@ func _on_start_button_pressed():
 	category_select_panel.visible = true
 
 func _on_settings_button_pressed():
-	_update_settings_ui()
-	settings_panel.visible = true
+	if PopupManager:
+		PopupManager.show_settings_popup(self)
 
 # ── Category / Game Type Select Grid Logic ────────────────────────────────────
 
@@ -188,141 +184,90 @@ func _handle_smooth_scroll_input(event: InputEvent, type: String):
 					cat_is_dragging = true
 					cat_has_dragged = false
 					cat_drag_start_pos = event.global_position
-					cat_last_drag_time = Time.get_ticks_msec()
 					cat_scroll_vel = 0.0
+					cat_last_drag_time = Time.get_ticks_msec()
 				else:
 					lvl_is_dragging = true
 					lvl_has_dragged = false
 					lvl_drag_start_pos = event.global_position
-					lvl_last_drag_time = Time.get_ticks_msec()
 					lvl_scroll_vel = 0.0
+					lvl_last_drag_time = Time.get_ticks_msec()
 			else:
 				if is_cat: cat_is_dragging = false
 				else: lvl_is_dragging = false
-				
+
 	elif event is InputEventMouseMotion:
 		if is_cat and cat_is_dragging:
 			var dy = event.relative.y
-			if event.global_position.distance_to(cat_drag_start_pos) > 6.0:
+			if abs(event.global_position.y - cat_drag_start_pos.y) > 10.0:
 				cat_has_dragged = true
 			cat_target_scroll -= dy
-			var now = Time.get_ticks_msec()
-			var dt = clamp((now - cat_last_drag_time) / 1000.0, 0.001, 0.1)
-			cat_last_drag_time = now
-			cat_scroll_vel = lerp(cat_scroll_vel, -dy / dt, 0.45)
+			var dt = max(1, Time.get_ticks_msec() - cat_last_drag_time)
+			cat_scroll_vel = -dy / (float(dt) / 1000.0)
+			cat_last_drag_time = Time.get_ticks_msec()
 			get_viewport().set_input_as_handled()
 		elif not is_cat and lvl_is_dragging:
 			var dy = event.relative.y
-			if event.global_position.distance_to(lvl_drag_start_pos) > 6.0:
+			if abs(event.global_position.y - lvl_drag_start_pos.y) > 10.0:
 				lvl_has_dragged = true
 			lvl_target_scroll -= dy
-			var now = Time.get_ticks_msec()
-			var dt = clamp((now - lvl_last_drag_time) / 1000.0, 0.001, 0.1)
-			lvl_last_drag_time = now
-			lvl_scroll_vel = lerp(lvl_scroll_vel, -dy / dt, 0.45)
-			get_viewport().set_input_as_handled()
-			
-	elif event is InputEventScreenTouch:
-		if event.pressed:
-			if is_cat:
-				cat_is_dragging = true
-				cat_has_dragged = false
-				cat_drag_start_pos = event.position
-				cat_last_drag_time = Time.get_ticks_msec()
-				cat_scroll_vel = 0.0
-			else:
-				lvl_is_dragging = true
-				lvl_has_dragged = false
-				lvl_drag_start_pos = event.position
-				lvl_last_drag_time = Time.get_ticks_msec()
-				lvl_scroll_vel = 0.0
-		else:
-			if is_cat: cat_is_dragging = false
-			else: lvl_is_dragging = false
-			
-	elif event is InputEventScreenDrag:
-		var dy = event.relative.y
-		if is_cat:
-			if not cat_is_dragging:
-				cat_is_dragging = true
-				cat_has_dragged = false
-				cat_drag_start_pos = event.position
-				cat_last_drag_time = Time.get_ticks_msec()
-			if event.position.distance_to(cat_drag_start_pos) > 6.0:
-				cat_has_dragged = true
-			cat_target_scroll -= dy
-			var now = Time.get_ticks_msec()
-			var dt = clamp((now - cat_last_drag_time) / 1000.0, 0.001, 0.1)
-			cat_last_drag_time = now
-			cat_scroll_vel = lerp(cat_scroll_vel, -dy / dt, 0.45)
-			get_viewport().set_input_as_handled()
-		else:
-			if not lvl_is_dragging:
-				lvl_is_dragging = true
-				lvl_has_dragged = false
-				lvl_drag_start_pos = event.position
-				lvl_last_drag_time = Time.get_ticks_msec()
-			if event.position.distance_to(lvl_drag_start_pos) > 6.0:
-				lvl_has_dragged = true
-			lvl_target_scroll -= dy
-			var now = Time.get_ticks_msec()
-			var dt = clamp((now - lvl_last_drag_time) / 1000.0, 0.001, 0.1)
-			lvl_last_drag_time = now
-			lvl_scroll_vel = lerp(lvl_scroll_vel, -dy / dt, 0.45)
+			var dt = max(1, Time.get_ticks_msec() - lvl_last_drag_time)
+			lvl_scroll_vel = -dy / (float(dt) / 1000.0)
+			lvl_last_drag_time = Time.get_ticks_msec()
 			get_viewport().set_input_as_handled()
 
 func create_category_card(cat_info: Dictionary) -> Control:
 	var btn = Button.new()
-	btn.custom_minimum_size = Vector2(380, 180)
+	btn.custom_minimum_size = Vector2(380, 200)
 	btn.clip_contents = true
 	btn.gui_input.connect(func(event): _on_category_scroll_gui_input(event))
 	
 	var is_unlocked = cat_info["is_unlocked"]
 	
-	# Background Image or Placeholder
-	if cat_info["background"] != "" and ResourceLoader.exists(cat_info["background"]):
-		var tex_rect = TextureRect.new()
-		tex_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		tex_rect.texture = load(cat_info["background"])
-		btn.add_child(tex_rect)
-	else:
-		var color_rect = ColorRect.new()
-		color_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-		color_rect.color = Color(0.12, 0.18, 0.32, 1.0)
-		color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		btn.add_child(color_rect)
+	# Solid sleek card background
+	var color_rect = ColorRect.new()
+	color_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	color_rect.color = Color(0.12, 0.18, 0.32, 1.0)
+	color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(color_rect)
 	
-	# Title Banner at bottom
-	var dark_bar = ColorRect.new()
-	dark_bar.anchor_top = 0.65
-	dark_bar.anchor_right = 1.0
-	dark_bar.anchor_bottom = 1.0
-	dark_bar.color = Color(0, 0, 0, 0.75)
-	dark_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	btn.add_child(dark_bar)
+	# Image preview with overlay
+	var bg_tex = TextureRect.new()
+	bg_tex.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	bg_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg_tex.texture = load(cat_info["background"])
+	bg_tex.modulate = Color(0.7, 0.7, 0.7, 0.6)
+	btn.add_child(bg_tex)
+	
+	# Bottom banner for title
+	var banner = ColorRect.new()
+	banner.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	banner.size.y = 55
+	banner.position.y = 145
+	banner.color = Color(0.06, 0.1, 0.2, 0.85)
+	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(banner)
 	
 	var label = Label.new()
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	label.text = cat_info["title"]
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 22)
+	label.add_theme_font_size_override("font_size", 28)
 	label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
 	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
-	label.add_theme_constant_override("outline_size", 5)
+	label.add_theme_constant_override("outline_size", 6)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	dark_bar.add_child(label)
+	banner.add_child(label)
 	
-	# Lock Overlay
 	if not is_unlocked:
 		btn.disabled = true
 		
 		var lock_overlay = ColorRect.new()
 		lock_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-		lock_overlay.color = Color(0.02, 0.04, 0.08, 0.75)
+		lock_overlay.color = Color(0.02, 0.04, 0.08, 0.8)
 		lock_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		btn.add_child(lock_overlay)
 		
@@ -413,7 +358,7 @@ func create_level_card(level_info: Dictionary) -> Control:
 	var is_unlocked = level_info["is_unlocked"]
 	var is_completed = level_info.get("is_completed", false)
 	
-	# Solid sleek card background (no image background)
+	# Solid sleek card background
 	var color_rect = ColorRect.new()
 	color_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	color_rect.color = Color(0.12, 0.18, 0.32, 1.0)
@@ -500,67 +445,24 @@ func _on_level_select_back_pressed():
 	populate_category_grid()
 	category_select_panel.visible = true
 
-# ── Settings Logic ───────────────────────────────────────────────────────────
-
-func _update_settings_ui():
-	if GameManager:
-		sound_toggle_btn.text = "Sound FX: ON" if GameManager.sound_enabled else "Sound FX: OFF"
-		music_toggle_btn.text = "Music: ON" if GameManager.music_enabled else "Music: OFF"
-	if InAppPurchaseManager:
-		if InAppPurchaseManager.is_ads_removed:
-			remove_ads_btn.text = "Ads Removed ✓"
-			remove_ads_btn.disabled = true
-		else:
-			remove_ads_btn.text = "🚫 Remove Ads ($4.99)"
-			remove_ads_btn.disabled = false
-
-func _on_sound_toggle_pressed():
-	if GameManager:
-		GameManager.sound_enabled = not GameManager.sound_enabled
-		sound_toggle_btn.text = "Sound FX: ON" if GameManager.sound_enabled else "Sound FX: OFF"
-
-func _on_music_toggle_pressed():
-	if GameManager:
-		GameManager.music_enabled = not GameManager.music_enabled
-		music_toggle_btn.text = "Music: ON" if GameManager.music_enabled else "Music: OFF"
-		if MusicManager:
-			if GameManager.music_enabled:
-				MusicManager.play_menu_music()
-			else:
-				MusicManager.stop_all()
-
-func _on_remove_ads_pressed():
-	if BillingManager:
-		BillingManager.purchase_remove_ads()
-	_update_settings_ui()
-
-func _on_restore_purchases_pressed():
-	if BillingManager and BillingManager.plugin and BillingManager.plugin.has_method("queryPurchases"):
-		BillingManager.plugin.queryPurchases("inapp")
-	_update_settings_ui()
-
-func _on_settings_close_pressed():
-	settings_panel.visible = false
-
-
-# ── Extra Store, Daily Challenge, & Popup Suite Helpers ───────────────────────
+# ── Extra Store, Daily Challenge, & Popup Suite Helpers ──────────────────────
 
 func _setup_extra_ui() -> void:
-	var coin_btn = get_node_or_null("MenuCoinsBtn")
+	var coin_btn = get_node_or_null("TopBar/RightHBox/MenuCoinsBtn")
 	if coin_btn:
 		var coins_val: int = GameManager.coins if GameManager else 0
 		coin_btn.text = " %d +" % coins_val
 
 	if SignalHub:
 		SignalHub.coins_updated.connect(func(new_bal):
-			var btn = get_node_or_null("MenuCoinsBtn")
+			var btn = get_node_or_null("TopBar/RightHBox/MenuCoinsBtn")
 			if is_instance_valid(btn):
 				btn.text = " %d +" % new_bal
 				pulse_coin_button()
 		)
 
 func pulse_coin_button() -> void:
-	var btn = get_node_or_null("MenuCoinsBtn")
+	var btn = get_node_or_null("TopBar/RightHBox/MenuCoinsBtn")
 	if btn:
 		btn.pivot_offset = btn.size * 0.5
 		var tw = btn.create_tween()
@@ -569,10 +471,8 @@ func pulse_coin_button() -> void:
 		tw.tween_property(btn, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 
 func _open_store() -> void:
-	var store_scene = load("res://scenes/ui_screens/store_ui.tscn")
-	if store_scene:
-		var store = store_scene.instantiate()
-		add_child(store)
+	if PopupManager:
+		PopupManager.show_store_popup(self)
 
 func _on_daily_challenge_pressed() -> void:
 	if PopupManager:
@@ -581,23 +481,3 @@ func _on_daily_challenge_pressed() -> void:
 func _on_daily_gifts_pressed() -> void:
 	if PopupManager:
 		PopupManager.show_daily_reward_popup(self)
-
-func _on_coffee_pressed() -> void:
-	if PopupManager:
-		PopupManager.show_support_coffee_popup(self)
-
-func _on_no_ads_today_pressed() -> void:
-	if PopupManager:
-		PopupManager.show_no_ads_today_popup(self)
-
-func _on_rate_pressed() -> void:
-	if PopupManager:
-		PopupManager.show_rate_popup(self)
-
-func _on_share_pressed() -> void:
-	if PopupManager:
-		PopupManager.show_share_popup(self)
-
-func _on_update_pressed() -> void:
-	if PopupManager:
-		PopupManager.show_in_app_update_popup(self)

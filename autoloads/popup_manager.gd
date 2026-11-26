@@ -200,6 +200,15 @@ func show_daily_reward_popup(parent: Node = null) -> void:
 func show_daily_challenge_popup(parent: Node = null) -> void:
 	_spawn_popup_scene("res://scenes/popups/daily_challenge_popup.tscn", parent)
 
+func show_store_popup(parent: Node = null) -> void:
+	_spawn_popup_scene("res://scenes/popups/store_popup.tscn", parent)
+
+func show_settings_popup(parent: Node = null) -> void:
+	_spawn_popup_scene("res://scenes/popups/settings_popup.tscn", parent)
+
+func can_claim_daily_reward() -> bool:
+	return _can_claim_today()
+
 func show_in_app_update_popup(parent: Node = null) -> void:
 	_spawn_popup_scene("res://scenes/popups/update_popup.tscn", parent)
 
