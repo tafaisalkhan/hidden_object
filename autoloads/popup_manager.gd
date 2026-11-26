@@ -837,7 +837,7 @@ func play_flying_coins_effect(parent: Node, from_pos: Vector2, to_pos: Vector2 =
 	var num_coins: int = 12
 	var overlay := CanvasLayer.new()
 	overlay.layer = 250
-	parent.get_tree().root.add_child(overlay)
+	parent.get_tree().root.add_child.call_deferred(overlay)
 
 	var completed_coins: int = 0
 
