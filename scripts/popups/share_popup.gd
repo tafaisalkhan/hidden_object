@@ -4,7 +4,7 @@ extends CanvasLayer
 @onready var share_btn = $Dimmer/Center/FrameBox/Panel/VBox/ShareBtn
 @onready var close_btn = $Dimmer/Center/FrameBox/CloseBtn
 
-const SHARE_MESSAGE := "🔎 Can you find all the hidden objects before time runs out? Play Difference Find with me!\nhttps://play.google.com/store/apps/details?id=com.difference.spot.hiddenobject"
+const SHARE_MESSAGE := "🔎 Can you find all the hidden objects before time runs out? Play Difference Find with me!\nhttps://play.google.com/store/apps/details?id=com.hiddenobject"
 
 func _ready():
 	close_btn.pressed.connect(_close)

@@ -4,7 +4,8 @@ extends CanvasLayer
 @onready var update_btn = $Dimmer/Center/FrameBox/Panel/VBox/UpdateBtn
 @onready var close_btn = $Dimmer/Center/FrameBox/CloseBtn
 
-const PLAY_STORE_URL := "market://details?id=com.difference.spot.hiddenobject"
+const PLAY_STORE_URL := "https://play.google.com/store/apps/details?id=com.hiddenobject"
+const MARKET_URL := "market://details?id=com.hiddenobject"
 
 func _ready():
 	close_btn.pressed.connect(_close)
@@ -26,5 +27,13 @@ func _close():
 	tw.chain().tween_callback(queue_free)
 
 func _on_update_pressed():
-	OS.shell_open(PLAY_STORE_URL)
+	if AdManager and AdManager.has_method("start_in_app_update") and AdManager._app_plugin:
+		AdManager.start_in_app_update()
+	else:
+		if OS.get_name() == "Android":
+			var err = OS.shell_open(MARKET_URL)
+			if err != OK:
+				OS.shell_open(PLAY_STORE_URL)
+		else:
+			OS.shell_open(PLAY_STORE_URL)
 	_close()

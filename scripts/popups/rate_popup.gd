@@ -4,7 +4,7 @@ extends CanvasLayer
 @onready var rate_btn = $Dimmer/Center/FrameBox/Panel/VBox/RateBtn
 @onready var close_btn = $Dimmer/Center/FrameBox/CloseBtn
 
-const PLAY_STORE_URL := "market://details?id=com.difference.spot.hiddenobject"
+const PLAY_STORE_URL := "market://details?id=com.hiddenobject"
 
 func _ready():
 	close_btn.pressed.connect(_close)

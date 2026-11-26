@@ -8,6 +8,10 @@ var edit_mode = false
 var original_bg_size: Vector2 = Vector2.ZERO
 var active_json_path: String = ""
 
+# Ad cycle configuration variables
+var ad_cycle_timer: float = 10.0
+var ad_cycle_state: String = "initial_wait" # "initial_wait", "showing", "hidden_wait"
+
 @onready var bottom_hud = $BottomHUD
 @onready var upper_hud = $UpperHUD
 @onready var level_container = $ViewportControl/LevelContainer
@@ -26,14 +30,15 @@ func _ready():
 	retry_btn.pressed.connect(_on_retry_pressed)
 	menu_btn.pressed.connect(_on_menu_pressed)
 	
+	# Start ad cycle (initially waiting 10s with ads hidden)
+	ad_cycle_timer = 10.0
+	ad_cycle_state = "initial_wait"
+	_set_ad_placeholder_visible(false)
+	
 	if has_node("DebugHUD"):
 		$DebugHUD.visible = false
 	if has_node("ZoomUI"):
 		$ZoomUI.visible = false
-	if has_node("DebugHUD/HBoxContainer/EditModeBtn"):
-		$DebugHUD/HBoxContainer/EditModeBtn.pressed.connect(_on_edit_mode_btn_pressed)
-	if has_node("DebugHUD/HBoxContainer/SaveBtn"):
-		$DebugHUD/HBoxContainer/SaveBtn.pressed.connect(_on_save_btn_pressed)
 	
 	if GameManager:
 		if GameManager.selected_level_id != "":
@@ -43,15 +48,54 @@ func _ready():
 	
 	# Play category-specific background music (crossfades from menu music)
 	if MusicManager:
-		MusicManager.play_game_music()
+		MusicManager.play_game_music(level_id)
 	
 	load_level(level_id)
 
+
+func _process(delta: float) -> void:
+	if InAppPurchaseManager.is_ads_removed:
+		return
+		
+	ad_cycle_timer -= delta
+	if ad_cycle_timer <= 0.0:
+		if ad_cycle_state == "initial_wait" or ad_cycle_state == "hidden_wait":
+			ad_cycle_state = "showing"
+			ad_cycle_timer = 10.0
+			_set_ad_placeholder_visible(true)
+		elif ad_cycle_state == "showing":
+			ad_cycle_state = "hidden_wait"
+			ad_cycle_timer = 5.0
+			_set_ad_placeholder_visible(false)
+
+
+func _set_ad_placeholder_visible(visible: bool) -> void:
+	if InAppPurchaseManager.is_ads_removed:
+		visible = false
+		
+	if has_node("AdPlaceholder"):
+		$AdPlaceholder.visible = visible
+		
+	if has_node("BottomHUD"):
+		$BottomHUD.offset = Vector2(0, -90.0 if visible else 0.0)
+		
+	if has_node("ViewportControl"):
+		var base_bottom_offset = -130.0
+		var ad_height_offset = -90.0 if visible else 0.0
+		$ViewportControl.offset_bottom = base_bottom_offset + ad_height_offset
+		
+	if visible:
+		AdManager.show_banner(false)
+	else:
+		AdManager.hide_banner()
+
 func load_level(id: String):
-	AdManager.set_gameplay_active(true)
 	level_id = id
 	# Hide game over overlay on load
-	game_over_hud.visible = false
+	if game_over_hud:
+		game_over_hud.visible = false
+	if MusicManager:
+		MusicManager.play_game_music(level_id)
 
 	# Clear old level
 	for child in level_container.get_children():
@@ -337,126 +381,240 @@ func save_layout():
 		print("Failed to save to: ", json_path)
 
 func _on_game_over(win: bool):
-	var title = $GameOverHUD/CenterContainer/VBoxContainer/Title
-	var score_info = $GameOverHUD/CenterContainer/VBoxContainer/ScoreInfo
-	var star1 = $GameOverHUD/CenterContainer/VBoxContainer/StarsContainer/Star1
-	var star2 = $GameOverHUD/CenterContainer/VBoxContainer/StarsContainer/Star2
-	var star3 = $GameOverHUD/CenterContainer/VBoxContainer/StarsContainer/Star3
-	var win_particles = $GameOverHUD/WinParticles if has_node("GameOverHUD/WinParticles") else null
+	var title = get_node_or_null("GameOverHUD/CenterContainer/VBoxContainer/Title")
+	var score_info = get_node_or_null("GameOverHUD/CenterContainer/VBoxContainer/ScoreInfo")
+	var reward_row = get_node_or_null("GameOverHUD/CenterContainer/VBoxContainer/CoinRewardRow")
+	var reward_label = get_node_or_null("GameOverHUD/CenterContainer/VBoxContainer/CoinRewardRow/RewardLabel")
+	var star1 = get_node_or_null("GameOverHUD/CenterContainer/VBoxContainer/StarsContainer/Star1")
+	var star2 = get_node_or_null("GameOverHUD/CenterContainer/VBoxContainer/StarsContainer/Star2")
+	var star3 = get_node_or_null("GameOverHUD/CenterContainer/VBoxContainer/StarsContainer/Star3")
+	var win_particles = get_node_or_null("GameOverHUD/WinParticles")
+	var coin_wallet = get_node_or_null("GameOverHUD/CoinWallet")
+	var coin_count = get_node_or_null("GameOverHUD/CoinWallet/CoinCount")
 	
-	var fill_tex = preload("res://assets/main/fillstart.png")
-	var empty_tex = preload("res://assets/main/emptystart.png")
+	var star_tex = preload("res://assets/main/victory-star.png")
 	
-	star1.texture = empty_tex
-	star2.texture = empty_tex
-	star3.texture = empty_tex
-	AdManager.set_gameplay_active(false)
-
+	if star1 and star2 and star3:
+		star1.texture = star_tex
+		star2.texture = star_tex
+		star3.texture = star_tex
+		star1.modulate = Color(0.18, 0.22, 0.35, 0.55)
+		star2.modulate = Color(0.18, 0.22, 0.35, 0.55)
+		star3.modulate = Color(0.18, 0.22, 0.35, 0.55)
+	
 	if win:
-		if GameManager and GameManager.is_daily_challenge_mode:
-			title.text = "DAILY CHALLENGE WON!"
-			score_info.text = "Score: %d  (+100 Bonus Coins 🪙)" % GameManager.score
-			GameManager.add_coins(100)
-			GameManager.is_daily_challenge_mode = false
-		else:
-			title.text = "LEVEL COMPLETED!"
-			score_info.text = "Final Score: " + str(GameManager.score)
-		title.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4, 1.0))
-
+		if title:
+			title.text = "DAILY CHALLENGE COMPLETE!" if GameManager.is_daily_mode else "LEVEL COMPLETED!"
+			title.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4, 1.0)) # Soft green
+		
+		# Play win sound
 		if MusicManager:
 			MusicManager.play_sfx("win")
-
-		continue_btn.visible = true
-		var next_sub = GameManager.get_next_sublevel_id() if GameManager else ""
-		if next_sub != "":
-			continue_btn.text = "Continue ➔"
-		else:
-			continue_btn.text = "Select Level"
-		retry_btn.text = "Play Again 🔄"
-
+		
+		# Show Continue and Play Again buttons
+		if continue_btn:
+			continue_btn.visible = true
+			if GameManager and GameManager.is_daily_mode:
+				continue_btn.text = "Daily Calendar"
+			elif GameManager and GameManager.is_arcade_mode:
+				continue_btn.text = "Next Arcade Level ➔"
+			else:
+				var next_sub = GameManager.get_next_sublevel_id() if GameManager else ""
+				if next_sub != "":
+					continue_btn.text = "Continue ➔"
+				else:
+					continue_btn.text = "Select Level"
+		if retry_btn:
+			retry_btn.visible = not GameManager.is_daily_mode
+			retry_btn.text = "Play Again 🔄"
+		
+		# Trigger particles & flying star filling animations
 		if win_particles:
 			win_particles.restart()
 			win_particles.emitting = true
-		_animate_victory_stars([star1, star2, star3], fill_tex)
-
-		# Flying coin animation from victory panel directly to UpperHUD
-		var spawn_pos: Vector2 = score_info.global_position + score_info.size * 0.5 if score_info else Vector2(640, 360)
-		if PopupManager and PopupManager.has_method("play_flying_coins_effect"):
-			PopupManager.play_flying_coins_effect(self, spawn_pos, Vector2.ZERO)
-
-		var completed_count: int = GameManager.completed_levels.size() if GameManager else 1
-		AdManager.on_level_completed(completed_count)
+		if star1 and star2 and star3:
+			_animate_victory_stars([star1, star2, star3], star_tex, GameManager.last_awarded_stars)
+		if reward_row:
+			reward_row.visible = true
+		if reward_label:
+			reward_label.text = "+" + str(GameManager.last_awarded_coins) + " coins  •  " + str(GameManager.last_awarded_stars) + " stars"
+		if coin_wallet:
+			coin_wallet.visible = true
+			if coin_count:
+				coin_count.text = str(GameManager.coins - GameManager.last_awarded_coins)
+			_animate_reward_coins(GameManager.last_awarded_coins)
 	else:
-		title.text = "GAME OVER"
-		title.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2, 1.0))
-		score_info.text = "Final Score: " + str(GameManager.score)
-
+		if title:
+			title.text = "GAME OVER"
+			title.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2, 1.0)) # Soft red
+		
+		# Play lose sound
 		if MusicManager:
 			MusicManager.play_sfx("lose")
+		
+		# Hide Continue, show Rewarded Ad Retry button
+		if continue_btn:
+			continue_btn.visible = false
+		if retry_btn:
+			retry_btn.visible = true
+			retry_btn.text = "🎬 Retry (+3 ❤)"
+		if reward_row:
+			reward_row.visible = false
+		if coin_wallet:
+			coin_wallet.visible = false
+		
+	if score_info:
+		score_info.text = "Final Score: " + str(GameManager.score)
+	if game_over_hud:
+		game_over_hud.visible = true
+	
+	# AdMob Anti-Suspension Compliance: only check on victory, never on loss, 120s cooldown
+	if is_instance_valid(self) and GameManager and GameManager.lives > 0:
+		var completed_lvl_idx: int = int(GameManager.selected_sublevel_id.replace("sub", "")) if GameManager else 0
+		AdManager.on_level_completed(completed_lvl_idx)
 
-		continue_btn.visible = false
-		retry_btn.text = "TRY AGAIN 🔄"
-
-	game_over_hud.visible = true
-
-func _animate_victory_stars(stars: Array, fill_tex: Texture2D):
-	for i in range(stars.size()):
+func _animate_victory_stars(stars: Array, star_tex: Texture2D, star_count: int):
+	for i in range(min(stars.size(), star_count)):
 		var target_star: TextureRect = stars[i]
 		if not is_instance_valid(target_star):
 			continue
 		
-		# Ensure pivot is centered for scale animations
-		target_star.pivot_offset = Vector2(35, 35)
+		target_star.pivot_offset = target_star.size / 2.0
 		target_star.scale = Vector2.ONE
 		target_star.rotation_degrees = 0.0
 		
-		var delay = 0.4 + (i * 0.45)
+		var delay = 0.35 + (i * 0.35)
 		
 		get_tree().create_timer(delay).timeout.connect(func():
 			if not is_instance_valid(target_star) or not game_over_hud.visible:
 				return
 			
-			# Ensure pivot center
 			target_star.pivot_offset = target_star.size / 2.0
 			
-			# Pop up scale, swap to filled star, and bounce back into place
+			# Pop up scale, illuminate star, and bounce back into place
 			var tween = create_tween()
-			tween.tween_property(target_star, "scale", Vector2(1.65, 1.65), 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-			tween.parallel().tween_property(target_star, "rotation_degrees", -12.0 if i % 2 == 0 else 12.0, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			tween.tween_property(target_star, "scale", Vector2(1.5, 1.5), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(target_star, "rotation_degrees", -10.0 if i % 2 == 0 else 10.0, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 			
-			# At peak of pop: change texture to filled star and play sound
+			# At peak of pop: illuminate to full golden color and play star sound
 			tween.chain().tween_callback(func():
 				if is_instance_valid(target_star):
-					target_star.texture = fill_tex
+					target_star.modulate = Color(1.0, 1.0, 1.0, 1.0)
 					if MusicManager:
-						MusicManager.play_sfx("star_fill")
+						MusicManager.play_sfx("star", -2.0, randf_range(0.96, 1.04))
 			)
 			
-			# Bounce back to normal size with elastic punch
-			tween.chain().tween_property(target_star, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-			tween.parallel().tween_property(target_star, "rotation_degrees", 0.0, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			# Elastic settle back to normal size
+			tween.chain().tween_property(target_star, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(target_star, "rotation_degrees", 0.0, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		)
+
+func _animate_reward_coins(amount: int) -> void:
+	var source = $GameOverHUD/CenterContainer/VBoxContainer/CoinRewardRow/CoinIcon
+	var destination = $GameOverHUD/CoinWallet/CoinIcon
+	var wallet_count = $GameOverHUD/CoinWallet/CoinCount
+	var coin_texture = preload("res://assets/main/reward-coin.png")
+	
+	var start_coins: int = GameManager.coins - amount
+	var target_coins: int = GameManager.coins
+	
+	var visual_coins: int = clampi(amount, 6, 10)
+	var coins_per_visual: float = float(amount) / float(visual_coins)
+	var current_visual_total: float = float(start_coins)
+	
+	for index in range(visual_coins):
+		var delay: float = 0.45 + (index * 0.065)
+		get_tree().create_timer(delay).timeout.connect(func():
+			if not is_instance_valid(self) or not game_over_hud.visible:
+				return
+			
+			var flying = TextureRect.new()
+			flying.texture = coin_texture
+			flying.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			flying.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			flying.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			flying.size = Vector2(44, 44)
+			flying.pivot_offset = flying.size / 2.0
+			game_over_hud.add_child(flying)
+			
+			var scatter = Vector2(randf_range(-12.0, 12.0), randf_range(-10.0, 10.0))
+			flying.global_position = source.global_position + (source.size / 2.0) - (flying.size / 2.0) + scatter
+			var target_position = destination.global_position + (destination.size / 2.0) - (flying.size / 2.0)
+			
+			var flight = create_tween()
+			var peak_pos = flying.global_position + Vector2(randf_range(-25.0, 25.0), -35.0)
+			flight.tween_property(flying, "scale", Vector2(1.3, 1.3), 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			flight.parallel().tween_property(flying, "global_position", peak_pos, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			
+			flight.chain().tween_property(flying, "global_position", target_position, 0.42).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			flight.parallel().tween_property(flying, "scale", Vector2(0.7, 0.7), 0.42)
+			flight.parallel().tween_property(flying, "rotation_degrees", randf_range(180.0, 360.0), 0.42)
+			
+			flight.tween_callback(func():
+				if not is_instance_valid(self) or not is_instance_valid(destination) or not is_instance_valid(wallet_count):
+					if is_instance_valid(flying): flying.queue_free()
+					return
+				
+				if MusicManager:
+					MusicManager.play_sfx("coin", -2.0, randf_range(0.94, 1.06))
+				
+				current_visual_total += coins_per_visual
+				if index == visual_coins - 1:
+					wallet_count.text = str(target_coins)
+					SignalHub.coins_updated.emit(target_coins)
+				else:
+					wallet_count.text = str(int(round(current_visual_total)))
+				
+				var pulse = create_tween()
+				pulse.tween_property(destination, "scale", Vector2(1.22, 1.22), 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+				pulse.tween_property(destination, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+				
+				flying.queue_free()
+			)
 		)
 
 func _on_retry_pressed():
-	load_level(level_id)
+	# If lives ended (lost level), watch rewarded video ad to retry with full 3 lives
+	if GameManager and GameManager.lives <= 0:
+		AdManager.show_rewarded_ad(func(success: bool):
+			if success and is_instance_valid(self):
+				load_level(level_id)
+		)
+	else:
+		# If user won and chose Play Again, reload directly
+		load_level(level_id)
 
 func _on_continue_pressed():
 	if GameManager:
-		var next_sub = GameManager.get_next_sublevel_id()
-		if next_sub != "":
-			GameManager.selected_sublevel_id = next_sub
-			sublevel_id = next_sub
-			load_level(level_id)
+		if GameManager.is_daily_mode:
+			_on_menu_pressed()
 			return
+		if GameManager.is_arcade_mode:
+			# It's arcade mode, so generate a completely new random level!
+			GameManager.pick_next_arcade_level()
+			
+			level_id = GameManager.selected_level_id
+			sublevel_id = GameManager.selected_sublevel_id
+			game_over_hud.visible = false
+			
+			# Reload scene fully to ensure clean state
+			get_tree().reload_current_scene()
+			return
+		else:
+			var next_sub = GameManager.get_next_sublevel_id()
+			if next_sub != "":
+				GameManager.selected_sublevel_id = next_sub
+				sublevel_id = next_sub
+				load_level(level_id)
+				return
 	
 	# If all sublevels completed or no next level, return to level select
 	_on_menu_pressed()
 
 func _on_menu_pressed():
-	AdManager.set_gameplay_active(false)
 	if GameManager:
-		GameManager.is_daily_challenge_mode = false
 		GameManager.return_to_level_select = true
+		GameManager.return_to_daily_screen = GameManager.is_daily_mode
 	get_tree().change_scene_to_file("res://main/main_menu.tscn")
 
 func rebuild_hud_items():
@@ -518,6 +676,38 @@ func _unhandled_input(event):
 			rebuild_hud_items()
 			print("All elements removed from background! (Reset to selectable targets)")
 			get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_K:
+			# K key: Force select any item under cursor (even if set to background) and make it fully editable
+			var candidates = []
+			for child in level_container.get_children():
+				if child.has_method("_gui_input") and child.name != "Bed" and child.name != "Character":
+					var local_m = child.get_local_mouse_position()
+					if Rect2(Vector2.ZERO, child.size).has_point(local_m):
+						candidates.append(child)
+			
+			var target_child = null
+			if candidates.size() > 0:
+				candidates.sort_custom(func(a, b): 
+					if a.z_index != b.z_index:
+						return a.z_index > b.z_index
+					return a.get_index() > b.get_index()
+				)
+				target_child = candidates[0]
+			
+			if target_child:
+				if target_child.has_method("remove_background_effect"):
+					target_child.remove_background_effect()
+				else:
+					target_child.is_background = false
+					target_child.is_target = true
+					target_child.mouse_filter = Control.MOUSE_FILTER_STOP
+					if target_child.has_method("update_visual_modulation"):
+						target_child.update_visual_modulation()
+				
+				target_child.grab_focus()
+				rebuild_hud_items()
+				print("Item '", target_child.item_id, "' is now fully editable and focused!")
+				get_viewport().set_input_as_handled()
 
 func spawn_wrong_click_indicator(local_pos: Vector2):
 	# Create a label to show "-1 ❤"
@@ -528,16 +718,21 @@ func spawn_wrong_click_indicator(local_pos: Vector2):
 	# Theme overrides for beautiful arcade styling
 	indicator.add_theme_color_override("font_color", Color(1.0, 0.25, 0.25, 1.0)) # Vibrant red
 	indicator.add_theme_color_override("font_shadow_color", Color.BLACK)
-	indicator.add_theme_font_size_override("font_size", 32) # Nice big size
+	indicator.add_theme_font_size_override("font_size", 72) # Large, highly visible size
 	
 	# Add thick black outline to ensure visibility on any background
 	indicator.add_theme_color_override("font_outline_color", Color.BLACK)
 	indicator.add_theme_constant_override("outline_size", 8)
 	
+	# Align text to center of the label
+	indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	indicator.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	
 	# Set pivot to center so scale transitions look perfect
-	indicator.size = Vector2(100, 40) # Give it a default size
+	indicator.size = Vector2(250, 90) # Large bounding box to prevent clipping
 	indicator.pivot_offset = indicator.size / 2.0
 	indicator.position -= indicator.pivot_offset # Center on click position
+	indicator.z_index = 10 # Draw on top of background (z_index 1) and bed (z_index 3)
 	
 	level_container.add_child(indicator)
 	
@@ -547,7 +742,7 @@ func spawn_wrong_click_indicator(local_pos: Vector2):
 	
 	# Pop scale bounce pop
 	indicator.scale = Vector2(0.5, 0.5)
-	tween.tween_property(indicator, "scale", Vector2(1.2, 1.2), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(indicator, "scale", Vector2(1.5, 1.5), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	
 	# Float upwards and fade out
 	var target_pos = Vector2(indicator.position.x, indicator.position.y - 60)
@@ -562,7 +757,7 @@ func trigger_hint() -> bool:
 	var target_item = null
 	for child in level_container.get_children():
 		if child.has_method("_gui_input") and child.name != "Bed" and child.name != "Character":
-			if child.is_target and not child.found:
+			if child.is_target and not child.is_background and not child.found:
 				target_item = child
 				break # Stop at the first un-found target item from the left (scene order matches HUD order)
 				
@@ -590,9 +785,13 @@ func _play_hint_visuals(target_item):
 	overlay.mouse_filter = Control.MOUSE_FILTER_STOP # Block clicks during hint show
 	level_container.add_child(overlay)
 	
-	# Keep item's original z-index so we can restore it later
+	# Keep item's original properties so we can restore them later
 	var original_z = target_item.z_index
+	var original_scale = target_item.scale
+	var original_rotation = target_item.rotation_degrees
+	
 	target_item.z_index = 9 # Raise above overlay
+	target_item.pivot_offset = target_item.size / 2.0
 	
 	# 2. Spawn Pulsing Hint Circle
 	var hint_circle_script = preload("res://hud/hint_circle.gd")
@@ -607,8 +806,8 @@ func _play_hint_visuals(target_item):
 	var viewport_control = $ViewportControl
 	var viewport_size = viewport_control.size if viewport_control else Vector2(720, 1075)
 	
-	# Visual center of the target item in room space
-	var item_center = target_item.position + (target_item.size / 2.0) * target_item.scale
+	# Visual center of the target item in global space
+	var item_center = target_item.get_global_transform().origin + (target_item.size / 2.0) * target_item.get_global_transform().get_scale()
 	
 	# Store the original camera parameters
 	var original_camera_pos = viewport_control.target_camera_pos if (viewport_control and "target_camera_pos" in viewport_control) else (camera.position if camera else original_bg_size / 2.0)
@@ -636,10 +835,28 @@ func _play_hint_visuals(target_item):
 		if viewport_control and "current_zoom" in viewport_control:
 			viewport_control.current_zoom = zoom_target
 	
-	# Dim the screen background
-	tween.tween_property(overlay, "color", Color(0.0, 0.0, 0.0, 0.55), 0.8).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	# Dim the screen background (level space)
+	tween.tween_property(overlay, "color", Color(0.01, 0.01, 0.03, 0.68), 0.8).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	
-	# 5. Hold, then Restore Camera Position and Zoom
+	# Dim HUD overlays and UI panels (full-screen gray out effect)
+	_set_layer_dim(bottom_hud, true)
+	_set_layer_dim(upper_hud, true)
+	
+	var debug_hud = get_node("DebugHUD") if has_node("DebugHUD") else null
+	var zoom_ui = get_node("ZoomUI") if has_node("ZoomUI") else null
+	if debug_hud: _set_layer_dim(debug_hud, true)
+	if zoom_ui: _set_layer_dim(zoom_ui, true)
+	
+	# Grow targeted item size (pop out animation)
+	tween.tween_property(target_item, "scale", original_scale * 1.45, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	
+	# Start a shaking/wobble rotation loop on the item during the 3.0s delay hold
+	var shake_tween = create_tween()
+	shake_tween.set_loops(6)
+	shake_tween.tween_property(target_item, "rotation_degrees", original_rotation - 12.0, 0.25).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	shake_tween.tween_property(target_item, "rotation_degrees", original_rotation + 12.0, 0.25).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	
+	# 5. Hold, then Restore Camera Position, Zoom, and Item Scale/Rotation
 	tween.chain().set_parallel(true)
 	
 	# Restore original camera values after a 3.0s delay
@@ -654,6 +871,21 @@ func _play_hint_visuals(target_item):
 	# Fade overlay back to transparent
 	tween.tween_property(overlay, "color", Color(0.0, 0.0, 0.0, 0.0), 0.8).set_delay(3.0).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	
+	# Restore HUD overlays and UI panels to full brightness
+	# Restore HUD overlays and UI panels to full brightness
+	tween.tween_callback(func():
+		_set_layer_dim(bottom_hud, false)
+		_set_layer_dim(upper_hud, false)
+		var debug_hud_ref = get_node("DebugHUD") if has_node("DebugHUD") else null
+		var zoom_ui_ref = get_node("ZoomUI") if has_node("ZoomUI") else null
+		if debug_hud_ref: _set_layer_dim(debug_hud_ref, false)
+		if zoom_ui_ref: _set_layer_dim(zoom_ui_ref, false)
+	).set_delay(3.0)
+	
+	# Shrink item back to original scale and reset rotation
+	tween.tween_property(target_item, "scale", original_scale, 0.8).set_delay(3.0).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(target_item, "rotation_degrees", original_rotation, 0.8).set_delay(3.0).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	
 	# Clean up elements on completion
 	tween.chain().tween_callback(func():
 		if viewport_control and "is_camera_tweening" in viewport_control:
@@ -662,8 +894,30 @@ func _play_hint_visuals(target_item):
 			viewport_control.current_zoom = original_camera_zoom
 		if is_instance_valid(target_item):
 			target_item.z_index = original_z
+			target_item.scale = original_scale
+			target_item.rotation_degrees = original_rotation
 			if is_instance_valid(circle):
 				circle.queue_free()
 		if is_instance_valid(overlay):
 			overlay.queue_free()
+			
+		# Re-enable the Hint button once the visual animation sequence completes (only if visible)
+		if is_instance_valid(upper_hud) and upper_hud.has_method("get_hint_button"):
+			var hb = upper_hud.get_hint_button()
+			if is_instance_valid(hb) and hb.visible:
+				if "is_hint_animating" in hb:
+					hb.is_hint_animating = false
+				if hb.has_method("refresh_state"):
+					hb.refresh_state()
+				else:
+					hb.disabled = false
 	)
+
+func _set_layer_dim(layer: Node, dim: bool):
+	if not is_instance_valid(layer):
+		return
+	var target_color = Color(0.25, 0.25, 0.25, 1.0) if dim else Color(1.0, 1.0, 1.0, 1.0)
+	for child in layer.get_children():
+		if child is CanvasItem:
+			var t = create_tween()
+			t.tween_property(child, "modulate", target_color, 0.8).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)

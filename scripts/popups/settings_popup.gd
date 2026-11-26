@@ -1,16 +1,16 @@
-extends CanvasLayer
+﻿extends CanvasLayer
 
 @onready var frame_box = $Dimmer/Center/FrameBox
 @onready var close_btn = $Dimmer/Center/FrameBox/CloseBtn
-@onready var sound_btn = $Dimmer/Center/FrameBox/Panel/VBox/AudioRow/SoundToggleBtn
-@onready var music_btn = $Dimmer/Center/FrameBox/Panel/VBox/AudioRow/MusicToggleBtn
-@onready var remove_ads_btn = $Dimmer/Center/FrameBox/Panel/VBox/RemoveAdsBtn
-@onready var rate_btn = $Dimmer/Center/FrameBox/Panel/VBox/SupportRow/RateBtn
-@onready var share_btn = $Dimmer/Center/FrameBox/Panel/VBox/SupportRow/ShareBtn
-@onready var coffee_btn = $Dimmer/Center/FrameBox/Panel/VBox/SupportRow/CoffeeBtn
-@onready var updates_btn = $Dimmer/Center/FrameBox/Panel/VBox/ActionRow/UpdatesBtn
-@onready var restore_btn = $Dimmer/Center/FrameBox/Panel/VBox/ActionRow/RestoreBtn
-@onready var bottom_close_btn = $Dimmer/Center/FrameBox/Panel/VBox/BottomCloseBtn
+@onready var sound_btn = $Dimmer/Center/FrameBox/Panel/Margin/VBox/AudioRow/SoundToggleBtn
+@onready var music_btn = $Dimmer/Center/FrameBox/Panel/Margin/VBox/AudioRow/MusicToggleBtn
+@onready var remove_ads_btn = $Dimmer/Center/FrameBox/Panel/Margin/VBox/RemoveAdsBtn
+@onready var rate_btn = $Dimmer/Center/FrameBox/Panel/Margin/VBox/SupportRow/RateBtn
+@onready var share_btn = $Dimmer/Center/FrameBox/Panel/Margin/VBox/SupportRow/ShareBtn
+@onready var coffee_btn = $Dimmer/Center/FrameBox/Panel/Margin/VBox/SupportRow/CoffeeBtn
+@onready var updates_btn = $Dimmer/Center/FrameBox/Panel/Margin/VBox/ActionRow/UpdatesBtn
+@onready var restore_btn = $Dimmer/Center/FrameBox/Panel/Margin/VBox/ActionRow/RestoreBtn
+@onready var bottom_close_btn = $Dimmer/Center/FrameBox/Panel/Margin/VBox/BottomCloseBtn
 
 func _ready():
 	close_btn.pressed.connect(_close)
@@ -48,8 +48,8 @@ func _close():
 
 func _refresh_ui():
 	if GameManager:
-		sound_btn.text = "🔊 Sound: ON" if GameManager.sound_enabled else "🔇 Sound: OFF"
-		music_btn.text = "🎵 Music: ON" if GameManager.music_enabled else "🎵 Music: OFF"
+		sound_btn.text = "Sound: ON" if GameManager.sound_enabled else "Sound: OFF"
+		music_btn.text = "Music: ON" if GameManager.music_enabled else "Music: OFF"
 	
 	var ads_removed := false
 	if BillingManager and BillingManager.is_remove_ads_owned():
@@ -58,10 +58,10 @@ func _refresh_ui():
 		ads_removed = true
 		
 	if ads_removed:
-		remove_ads_btn.text = "Ads Removed ✓"
+		remove_ads_btn.text = "Ads Removed"
 		remove_ads_btn.disabled = true
 	else:
-		remove_ads_btn.text = "🚫 Remove Ads ($4.99)"
+		remove_ads_btn.text = "Remove Ads ($4.99)"
 		remove_ads_btn.disabled = false
 
 func _on_sound_toggle():

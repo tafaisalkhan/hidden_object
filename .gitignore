@@ -7,15 +7,23 @@ export_presets.cfg
 .DS_Store
 Thumbs.db
 
-# Secrets, Keystores, Big Assets, JSON (NEVER COMMIT)
+# Secrets, Keystores, Big Assets, JSON, Music, Docs, Backups (NEVER COMMIT)
 assets/
 data/
+docs/
+_backups/
+*.zip
+*.7z
+*.tar*
 *.json
 *.keystore
 *.jks
-admob_secrets.gd
-admob_secrets.gd.uid
+admob_secrets*
 build/
 *.aab
 *.apk
 *.uid
+*.wav
+*.mp3
+*.ogg
+

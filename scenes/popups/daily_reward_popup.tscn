@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/popups/daily_reward_popup.gd" id="1"]
 [ext_resource type="FontFile" path="res://assets/fonts/LuckiestGuy-Regular.ttf" id="2"]
@@ -31,12 +31,24 @@ corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card7"]
+bg_color = Color(0.14, 0.18, 0.32, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.835, 0.31, 0.9)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn"]
 texture = ExtResource("3_btn")
-texture_margin_left = 15.0
-texture_margin_top = 15.0
-texture_margin_right = 15.0
-texture_margin_bottom = 15.0
+texture_margin_left = 14.0
+texture_margin_top = 14.0
+texture_margin_right = 14.0
+texture_margin_bottom = 14.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close"]
 bg_color = Color(0.85, 0.22, 0.22, 0.95)
@@ -62,10 +74,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.047, 0.082, 0.161, 0.88)
+color = Color(0, 0, 0, 0.65)
 
 [node name="Center" type="CenterContainer" parent="Dimmer"]
-layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -73,7 +84,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="FrameBox" type="Control" parent="Dimmer/Center"]
-custom_minimum_size = Vector2(490, 620)
+custom_minimum_size = Vector2(490, 395)
 layout_mode = 2
 
 [node name="Panel" type="Panel" parent="Dimmer/Center/FrameBox"]
@@ -90,20 +101,18 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 20.0
-offset_right = -24.0
-offset_bottom = -20.0
+offset_left = 20.0
+offset_right = -20.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="Eyebrow" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.505882, 0.831373, 0.980392, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 text = "DAILY REWARD CALENDAR"
 horizontal_alignment = 1
 
@@ -113,42 +122,52 @@ theme_override_colors/font_color = Color(1, 0.835294, 0.309804, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
 theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 26
-text = "7-Day Consecutive Gifts 🎁"
+theme_override_font_sizes/font_size = 21
+text = "7-DAY CONSECUTIVE GIFTS"
 horizontal_alignment = 1
 
 [node name="StreakLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_colors/font_color = Color(0.85, 0.92, 1, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 16
-text = "Current Streak: 0 Days"
+theme_override_font_sizes/font_size = 13
+text = "CURRENT STREAK: 0 DAYS"
 horizontal_alignment = 1
 
-[node name="DaysGrid" type="GridContainer" parent="Dimmer/Center/FrameBox/Panel/VBox"]
+[node name="SpacerTop" type="Control" parent="Dimmer/Center/FrameBox/Panel/VBox"]
+custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
-columns = 4
 
-[node name="Card1" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid"]
-custom_minimum_size = Vector2(100, 95)
+[node name="CardsContainer" type="VBoxContainer" parent="Dimmer/Center/FrameBox/Panel/VBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Row1" type="HBoxContainer" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Card1" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1"]
+custom_minimum_size = Vector2(100, 78)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card1"]
+[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1/Card1"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 6.0
-offset_bottom = 26.0
-grow_horizontal = 2
+offset_top = 4.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 11
 text = "Day 1"
 horizontal_alignment = 1
 
-[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card1"]
+[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1/Card1"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -156,46 +175,43 @@ anchor_right = 1.0
 anchor_bottom = 0.5
 offset_top = -12.0
 offset_bottom = 12.0
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "+50"
 horizontal_alignment = 1
 
-[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card1"]
+[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1/Card1"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -24.0
 offset_bottom = -4.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_font_sizes/font_size = 11
-text = "READY"
+theme_override_colors/font_color = Color(0.65, 0.75, 0.85, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 9
+text = "LOCKED"
 horizontal_alignment = 1
 
-[node name="Card2" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid"]
-custom_minimum_size = Vector2(100, 95)
+[node name="Card2" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1"]
+custom_minimum_size = Vector2(100, 78)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card2"]
+[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1/Card2"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 6.0
-offset_bottom = 26.0
-grow_horizontal = 2
+offset_top = 4.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 11
 text = "Day 2"
 horizontal_alignment = 1
 
-[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card2"]
+[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1/Card2"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -203,46 +219,43 @@ anchor_right = 1.0
 anchor_bottom = 0.5
 offset_top = -12.0
 offset_bottom = 12.0
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "+75"
 horizontal_alignment = 1
 
-[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card2"]
+[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1/Card2"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -24.0
 offset_bottom = -4.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.65, 0.75, 0.85, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 9
 text = "LOCKED"
 horizontal_alignment = 1
 
-[node name="Card3" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid"]
-custom_minimum_size = Vector2(100, 95)
+[node name="Card3" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1"]
+custom_minimum_size = Vector2(100, 78)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card3"]
+[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1/Card3"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 6.0
-offset_bottom = 26.0
-grow_horizontal = 2
+offset_top = 4.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 11
 text = "Day 3"
 horizontal_alignment = 1
 
-[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card3"]
+[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1/Card3"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -250,46 +263,43 @@ anchor_right = 1.0
 anchor_bottom = 0.5
 offset_top = -12.0
 offset_bottom = 12.0
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "+100"
 horizontal_alignment = 1
 
-[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card3"]
+[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1/Card3"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -24.0
 offset_bottom = -4.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.65, 0.75, 0.85, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 9
 text = "LOCKED"
 horizontal_alignment = 1
 
-[node name="Card4" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid"]
-custom_minimum_size = Vector2(100, 95)
+[node name="Card4" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1"]
+custom_minimum_size = Vector2(100, 78)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card4"]
+[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1/Card4"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 6.0
-offset_bottom = 26.0
-grow_horizontal = 2
+offset_top = 4.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 11
 text = "Day 4"
 horizontal_alignment = 1
 
-[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card4"]
+[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1/Card4"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -297,46 +307,49 @@ anchor_right = 1.0
 anchor_bottom = 0.5
 offset_top = -12.0
 offset_bottom = 12.0
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "+150"
 horizontal_alignment = 1
 
-[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card4"]
+[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row1/Card4"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -24.0
 offset_bottom = -4.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.65, 0.75, 0.85, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 9
 text = "LOCKED"
 horizontal_alignment = 1
 
-[node name="Card5" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid"]
-custom_minimum_size = Vector2(100, 95)
+[node name="Row2" type="HBoxContainer" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Card5" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row2"]
+custom_minimum_size = Vector2(100, 78)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card5"]
+[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row2/Card5"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 6.0
-offset_bottom = 26.0
-grow_horizontal = 2
+offset_top = 4.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 11
 text = "Day 5"
 horizontal_alignment = 1
 
-[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card5"]
+[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row2/Card5"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -344,46 +357,43 @@ anchor_right = 1.0
 anchor_bottom = 0.5
 offset_top = -12.0
 offset_bottom = 12.0
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "+200"
 horizontal_alignment = 1
 
-[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card5"]
+[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row2/Card5"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -24.0
 offset_bottom = -4.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.65, 0.75, 0.85, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 9
 text = "LOCKED"
 horizontal_alignment = 1
 
-[node name="Card6" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid"]
-custom_minimum_size = Vector2(100, 95)
+[node name="Card6" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row2"]
+custom_minimum_size = Vector2(100, 78)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card6"]
+[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row2/Card6"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 6.0
-offset_bottom = 26.0
-grow_horizontal = 2
+offset_top = 4.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 11
 text = "Day 6"
 horizontal_alignment = 1
 
-[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card6"]
+[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row2/Card6"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -391,47 +401,43 @@ anchor_right = 1.0
 anchor_bottom = 0.5
 offset_top = -12.0
 offset_bottom = 12.0
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "+250"
 horizontal_alignment = 1
 
-[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card6"]
+[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row2/Card6"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -24.0
 offset_bottom = -4.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.65, 0.75, 0.85, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 9
 text = "LOCKED"
 horizontal_alignment = 1
 
-[node name="Card7" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid"]
-custom_minimum_size = Vector2(208, 95)
+[node name="Card7" type="Panel" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row2"]
+custom_minimum_size = Vector2(210, 78)
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+theme_override_styles/panel = SubResource("StyleBoxFlat_card7")
 
-[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card7"]
+[node name="DayLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row2/Card7"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 6.0
-offset_bottom = 26.0
-grow_horizontal = 2
+offset_top = 4.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 14
-text = "Day 7 (MEGA)"
+theme_override_font_sizes/font_size = 11
+text = "DAY 7 - GRAND PRIZE"
 horizontal_alignment = 1
 
-[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card7"]
+[node name="CoinLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row2/Card7"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -439,62 +445,59 @@ anchor_right = 1.0
 anchor_bottom = 0.5
 offset_top = -12.0
 offset_bottom = 12.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 18
-text = "👑 +500 COINS"
+text = "+500 COINS"
 horizontal_alignment = 1
 
-[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/DaysGrid/Card7"]
+[node name="StatusLabel" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox/CardsContainer/Row2/Card7"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -24.0
 offset_bottom = -4.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(1, 0.9, 0.6, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 9
 text = "LOCKED"
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="Dimmer/Center/FrameBox/Panel/VBox"]
-custom_minimum_size = Vector2(0, 10)
+[node name="SpacerBottom" type="Control" parent="Dimmer/Center/FrameBox/Panel/VBox"]
+custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
 
 [node name="ClaimBtn" type="Button" parent="Dimmer/Center/FrameBox/Panel/VBox"]
-custom_minimum_size = Vector2(360, 58)
+custom_minimum_size = Vector2(340, 50)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 0.980392, 0.768627, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
 theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "COLLECT REWARD 🎁"
+text = "COLLECT REWARD"
 
 [node name="CloseBtn" type="Button" parent="Dimmer/Center/FrameBox"]
-custom_minimum_size = Vector2(42, 42)
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -50.0
-offset_top = 10.0
-offset_right = -8.0
-offset_bottom = 52.0
+offset_left = -20.0
+offset_top = -18.0
+offset_right = 22.0
+offset_bottom = 24.0
 grow_horizontal = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_close")
 theme_override_styles/hover = SubResource("StyleBoxFlat_close")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_close")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "✕"
+text = "X"

@@ -15,10 +15,17 @@ const DAILY_REWARDS := [
 ]
 
 const DAILY_SAVE_PATH := "user://hiddenobject_daily_streak.cfg"
-const PLAY_STORE_URL := "https://play.google.com/store/apps/details?id=com.finddifference.inimage"
+const PLAY_STORE_URL := "https://play.google.com/store/apps/details?id=com.hiddenobject"
 
 var support_popup_shown_this_session := false
 var coin_animation_enabled: bool = true
+
+func _ready() -> void:
+	if AdManager and AdManager.has_signal("in_app_update_available"):
+		AdManager.in_app_update_available.connect(func(available: bool):
+			if available:
+				show_in_app_update_popup()
+		)
 
 func open_popup_animated(popup_root: Control, bg: Control) -> void:
 	popup_root.pivot_offset = popup_root.size * 0.5

@@ -3,7 +3,6 @@ extends CanvasLayer
 @onready var frame_box = $Dimmer/Center/FrameBox
 @onready var claim_btn = $Dimmer/Center/FrameBox/Panel/VBox/ClaimBtn
 @onready var close_btn = $Dimmer/Center/FrameBox/CloseBtn
-@onready var days_grid = $Dimmer/Center/FrameBox/Panel/VBox/DaysGrid
 @onready var streak_label = $Dimmer/Center/FrameBox/Panel/VBox/StreakLabel
 
 const REWARDS: Array[int] = [50, 75, 100, 150, 200, 250, 500]
@@ -19,30 +18,39 @@ func _setup_cards():
 	var can_claim: bool = PopupManager._can_claim_today() if PopupManager else true
 	var current_day_idx: int = (streak % 7)
 	
-	streak_label.text = "Current Streak: %d Days" % streak
+	streak_label.text = "CURRENT STREAK: %d DAYS" % streak
 	
 	for i in range(7):
-		var card = days_grid.get_child(i)
+		var card = find_child("Card%d" % (i + 1), true, false)
 		if not card: continue
 		var day_lbl = card.get_node_or_null("DayLabel")
 		var coin_lbl = card.get_node_or_null("CoinLabel")
 		var status_lbl = card.get_node_or_null("StatusLabel")
 		
-		if day_lbl: day_lbl.text = "Day %d" % (i + 1)
-		if coin_lbl: coin_lbl.text = "+%d" % REWARDS[i]
+		if day_lbl:
+			if i == 6:
+				day_lbl.text = "DAY 7 - GRAND PRIZE"
+			else:
+				day_lbl.text = "Day %d" % (i + 1)
+				
+		if coin_lbl:
+			if i == 6:
+				coin_lbl.text = "+%d COINS" % REWARDS[i]
+			else:
+				coin_lbl.text = "+%d" % REWARDS[i]
 		
 		if i < current_day_idx:
 			if status_lbl: status_lbl.text = "CLAIMED ✓"
-			card.modulate = Color(0.6, 0.8, 0.6, 0.8)
+			card.modulate = Color(0.6, 0.8, 0.6, 0.85)
 		elif i == current_day_idx and can_claim:
 			if status_lbl: status_lbl.text = "READY! 🎁"
 			card.modulate = Color(1.0, 1.0, 1.0, 1.0)
 		elif i == current_day_idx and not can_claim:
 			if status_lbl: status_lbl.text = "CLAIMED ✓"
-			card.modulate = Color(0.6, 0.8, 0.6, 0.8)
+			card.modulate = Color(0.6, 0.8, 0.6, 0.85)
 		else:
 			if status_lbl: status_lbl.text = "LOCKED 🔒"
-			card.modulate = Color(0.5, 0.5, 0.6, 0.6)
+			card.modulate = Color(0.5, 0.55, 0.65, 0.65)
 	
 	if can_claim:
 		claim_btn.disabled = false

@@ -4,9 +4,9 @@
 [ext_resource type="Texture2D" uid="uid://chu1ckdrvmi0y" path="res://assets/main/hint.png" id="2_hint"]
 
 [node name="HintButton" type="Button"]
-custom_minimum_size = Vector2(90, 36)
+custom_minimum_size = Vector2(95, 38)
 theme_override_font_sizes/font_size = 18
-text = "Hint"
+text = " 50"
 icon = ExtResource("2_hint")
 expand_icon = true
 script = ExtResource("1_script")

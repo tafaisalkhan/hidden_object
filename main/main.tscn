@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://mainsceneuid"]
+[gd_scene load_steps=12 format=3 uid="uid://mainsceneuid"]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://upperhuduid" path="res://hud/upper_hud.tscn" id="2_upper"]
@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://hud/drag_scroll.gd" id="4_scroll"]
 [ext_resource type="PackedScene" uid="uid://zoomuiuid" path="res://hud/zoom_ui.tscn" id="5_zoom"]
 [ext_resource type="Texture2D" uid="uid://cwpdv5fnirn1a" path="res://assets/main/button.png" id="6_btn_bg"]
+[ext_resource type="Texture2D" path="res://assets/main/reward-coin.png" id="7_coin"]
+[ext_resource type="FontFile" path="res://assets/fonts/LuckiestGuy-Regular.ttf" id="8_display_font"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
 texture = ExtResource("6_btn_bg")
@@ -40,8 +42,6 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 75.0
-offset_bottom = -130.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("4_scroll")
@@ -56,6 +56,17 @@ position_smoothing_enabled = true
 position_smoothing_speed = 15.0
 
 [node name="BottomHUD" parent="." instance=ExtResource("3_bottom")]
+
+[node name="AdPlaceholder" type="ColorRect" parent="."]
+visible = false
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -90.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0.0823529, 0.12549, 0.243137, 1.0)
 
 [node name="ZoomUI" parent="." instance=ExtResource("5_zoom")]
 visible = false
@@ -98,6 +109,34 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0470588, 0.0823529, 0.160784, 0.941176)
 
+[node name="CoinWallet" type="HBoxContainer" parent="GameOverHUD"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -178.0
+offset_top = 18.0
+offset_right = -20.0
+offset_bottom = 64.0
+grow_horizontal = 0
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="CoinIcon" type="TextureRect" parent="GameOverHUD/CoinWallet"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("7_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinCount" type="Label" parent="GameOverHUD/CoinWallet"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0.38, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.12, 0.24, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 26
+text = "0"
+vertical_alignment = 1
+
 [node name="WinParticles" type="CPUParticles2D" parent="GameOverHUD"]
 position = Vector2(960, 480)
 emitting = false
@@ -132,6 +171,7 @@ alignment = 1
 
 [node name="Title" type="Label" parent="GameOverHUD/CenterContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("8_display_font")
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 12
 theme_override_font_sizes/font_size = 56
@@ -171,6 +211,25 @@ text = "Final Score: 0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="CoinRewardRow" type="HBoxContainer" parent="GameOverHUD/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="CoinIcon" type="TextureRect" parent="GameOverHUD/CenterContainer/VBoxContainer/CoinRewardRow"]
+custom_minimum_size = Vector2(46, 46)
+layout_mode = 2
+texture = ExtResource("7_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RewardLabel" type="Label" parent="GameOverHUD/CenterContainer/VBoxContainer/CoinRewardRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0.38, 1)
+theme_override_font_sizes/font_size = 28
+text = "+5 coins"
+vertical_alignment = 1
+
 [node name="HBoxContainer" type="HBoxContainer" parent="GameOverHUD/CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 20
@@ -179,6 +238,7 @@ alignment = 1
 [node name="ContinueBtn" type="Button" parent="GameOverHUD/CenterContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(190, 65)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("8_display_font")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
 theme_override_constants/outline_size = 6
@@ -191,6 +251,7 @@ text = "Continue ➔"
 [node name="RetryBtn" type="Button" parent="GameOverHUD/CenterContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(210, 65)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("8_display_font")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
 theme_override_constants/outline_size = 6
@@ -203,6 +264,7 @@ text = "Play Again"
 [node name="MenuBtn" type="Button" parent="GameOverHUD/CenterContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(180, 65)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("8_display_font")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
 theme_override_constants/outline_size = 6

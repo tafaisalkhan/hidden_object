@@ -20,8 +20,12 @@ var remove_ads_owned: bool = false:
 	set(value):
 		remove_ads_owned = value
 		if GameManager:
-			GameManager.ads_removed = value
-			GameManager.save_data()
+			if "ads_removed" in GameManager:
+				GameManager.ads_removed = value
+			if GameManager.has_method("save_data"):
+				GameManager.save_data()
+			elif GameManager.has_method("save_game"):
+				GameManager.save_game()
 		remove_ads_purchase_changed.emit(value)
 		SignalHub.emit_on_ads_removed()
 
@@ -36,7 +40,7 @@ var product_prices: Dictionary = {
 var plugin: Object = null
 
 func _ready() -> void:
-	if GameManager:
+	if GameManager and "ads_removed" in GameManager:
 		remove_ads_owned = GameManager.ads_removed
 	if Engine.has_singleton("GodotGooglePlayBilling"):
 		plugin = Engine.get_singleton("GodotGooglePlayBilling")

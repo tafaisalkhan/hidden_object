@@ -62,7 +62,7 @@ var drag_offset = Vector2.ZERO
 
 ## Drag-to-pan protection: if the user moves more than this many pixels
 ## between press and release, treat it as a pan gesture, not a tap.
-const DRAG_CANCEL_THRESHOLD: float = 8.0
+const DRAG_CANCEL_THRESHOLD: float = 24.0
 var _was_dragged:  bool    = false
 var _press_pos:    Vector2 = Vector2.ZERO
 
@@ -75,7 +75,7 @@ func _gui_input(event):
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
 				_was_dragged = false
-				_press_pos   = event.position
+				_press_pos   = event.global_position
 			else:
 				# Suppress background tap penalty in drag_scroll
 				var viewport_ctrl = main_scene.find_child("ViewportControl", true, false) if main_scene else null
@@ -86,7 +86,7 @@ func _gui_input(event):
 		elif event is InputEventScreenTouch:
 			if event.pressed:
 				_was_dragged = false
-				_press_pos   = event.position
+				_press_pos   = event.global_position
 			else:
 				var viewport_ctrl = main_scene.find_child("ViewportControl", true, false) if main_scene else null
 				if viewport_ctrl and viewport_ctrl.has_method("mark_item_clicked"):
@@ -94,7 +94,7 @@ func _gui_input(event):
 				if _was_dragged:
 					accept_event()
 		elif event is InputEventMouseMotion or event is InputEventScreenDrag:
-			if event.position.distance_to(_press_pos) > DRAG_CANCEL_THRESHOLD:
+			if event.global_position.distance_to(_press_pos) > DRAG_CANCEL_THRESHOLD:
 				_was_dragged = true
 		return
 
@@ -290,7 +290,10 @@ func _on_pressed():
 
 	found = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE # Prevent further clicks safely
-	play_jewel_sound()
+	if MusicManager:
+		MusicManager.play_sfx("sparkle", -1.0, randf_range(0.97, 1.03))
+	
+
 	
 	# Dynamically target the corresponding silhouette in the BottomHUD
 	var fly_target = target_hud_position
@@ -317,6 +320,8 @@ func _on_pressed():
 	
 	# Convert global position from camera-transformed world space to screen space
 	var old_global_pos = get_global_transform_with_canvas().origin
+	var canvas_scale = get_global_transform_with_canvas().get_scale()
+	var center_canvas_pos = old_global_pos + (size / 2.0) * canvas_scale
 	var old_scale = scale
 	var trail_particles = null
 	
@@ -328,7 +333,7 @@ func _on_pressed():
 		
 		# 1. Spawn initial click spark burst (CPUParticles2D)
 		var burst_particles = CPUParticles2D.new()
-		burst_particles.global_position = old_global_pos + (pivot_offset * old_scale)
+		burst_particles.global_position = center_canvas_pos
 		burst_particles.amount = 30
 		burst_particles.lifetime = 0.8
 		burst_particles.one_shot = true
@@ -368,7 +373,7 @@ func _on_pressed():
 		trail_particles.color_ramp = grad
 		
 		add_child(trail_particles)
-		trail_particles.position = pivot_offset # Center on the button
+		trail_particles.position = size / 2.0 # Center on the button
 		trail_particles.emitting = true
 	
 	var tween = create_tween()
@@ -460,74 +465,5 @@ func update_visual_modulation():
 		modulate = custom_modulate
 
 func play_jewel_sound():
-	var stream = create_jewel_stream()
-	var player = AudioStreamPlayer.new()
-	player.stream = stream
-	var main_scene = get_tree().current_scene
-	if main_scene:
-		main_scene.add_child(player)
-	player.play()
-	player.finished.connect(player.queue_free)
-
-func create_jewel_stream() -> AudioStreamWAV:
-	var stream = AudioStreamWAV.new()
-	stream.format = AudioStreamWAV.FORMAT_16_BITS
-	stream.mix_rate = 44100
-	stream.stereo = false
-	
-	var sample_rate = 44100.0
-	var duration = 0.5
-	var num_samples = int(sample_rate * duration)
-	var bytes = PackedByteArray()
-	bytes.resize(num_samples * 2) # 16-bit (2 bytes per sample)
-	
-	var phase = 0.0
-	
-	for i in range(num_samples):
-		var t = float(i) / sample_rate
-		
-		# Rising crystalline jewel arpeggio (C6 -> E6 -> G6 -> C7)
-		var freq = 1046.50 # C6
-		var note_t = t
-		if t > 0.05 and t <= 0.10:
-			freq = 1318.51 # E6
-			note_t = t - 0.05
-		elif t > 0.10 and t <= 0.15:
-			freq = 1567.98 # G6
-			note_t = t - 0.10
-		elif t > 0.15:
-			freq = 2093.00 # C7
-			note_t = t - 0.15
-			
-		# Accumulate phase smoothly to prevent zero-crossing clicks
-		phase += (freq / sample_rate) * TAU
-		
-		# Additive synthesis for a bright sparkling gemstone timbre
-		var primary = sin(phase)
-		var overtone = sin(phase * 2.0) * 0.35 # Bright crystal sheen
-		var subharmonic = sin(phase * 0.5) * 0.15 # Add roundness
-		var sample_val = (primary + overtone + subharmonic) / 1.5
-		
-		# Short clickless attack for each note
-		var envelope = 1.0
-		if note_t < 0.01:
-			envelope = note_t / 0.01
-			
-		# Exponential decay on the final ringing tone
-		if t > 0.15:
-			var decay_t = t - 0.15
-			envelope *= exp(-6.0 * decay_t)
-			
-		var final_val = sample_val * envelope * 0.35
-		
-		# Convert to 16-bit signed integer (-32768 to 32767)
-		var int_val = int(final_val * 32767.0)
-		int_val = clamp(int_val, -32768, 32767)
-		
-		# Pack 16-bit sample (little endian format)
-		var byte_idx = i * 2
-		bytes[byte_idx] = int_val & 0xFF
-		bytes[byte_idx + 1] = (int_val >> 8) & 0xFF
-		
-	stream.data = bytes
-	return stream
+	if MusicManager:
+		MusicManager.play_sfx("sparkle", -1.0, randf_range(0.97, 1.03))

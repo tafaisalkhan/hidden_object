@@ -2,12 +2,12 @@ extends Node
 ## AdManager - Google AdMob integration (Poing AdMob Plugin v5)
 ## Enforces Google AdMob Policy Standard & 10 Anti-Suspension Rules
 
-# Google Test Ad Unit IDs (NEVER commit production IDs to GitHub)
-const ADMOB_APP_ID: String = "ca-app-pub-3940256099942544~3347511713"
-const BANNER_AD_ID: String = "ca-app-pub-3940256099942544/6300978111"
-const INTERSTITIAL_AD_ID: String = "ca-app-pub-3940256099942544/1033173712"
-const REWARDED_AD_ID: String = "ca-app-pub-3940256099942544/5224354917"
-const PLAY_STORE_URL := "https://play.google.com/store/apps/details?id=com.finddifference.inimage"
+# Google Ad Unit IDs for difference-find
+const ADMOB_APP_ID: String = "ca-app-pub-1852108665659812~9828050799"
+const BANNER_AD_ID: String = "ca-app-pub-1852108665659812/2570759337"
+const INTERSTITIAL_AD_ID: String = "ca-app-pub-1852108665659812/1949560770"
+const REWARDED_AD_ID: String = "ca-app-pub-1852108665659812/6071020642"
+const PLAY_STORE_URL := "https://play.google.com/store/apps/details?id=com.hiddenobject"
 
 # --- AdMob Anti-Suspension Policy Constants ---
 const INTERSTITIAL_EVERY_N_LEVELS := 3
@@ -30,6 +30,7 @@ var levels_since_interstitial: int = 0
 var last_interstitial_unix_sec: float = -9999.0
 var interstitial_timestamps_sec: Array[float] = []
 var gameplay_active: bool = false
+var ads_suspended: bool = false # Master switch: set true to suppress all ads if account suspended
 var reward_pending: bool = false
 
 # Backoff retry timers (Rule 9: Exponential backoff 2s -> 4s -> 8s -> 16s -> 32s -> 64s)
@@ -158,18 +159,23 @@ func _load_banner_bottom() -> void:
 	if _banner_view_bottom.has_method("load_ad"):
 		_banner_view_bottom.load_ad()
 
-func show_banner() -> void:
+func show_banner(_is_top: bool = false) -> void:
 	if is_ad_free() or gameplay_active:
-		hide_banner()
+		hide_banner(_is_top)
 		return
 	if _banner_view_bottom != null and _banner_view_bottom.has_method("show"):
 		_banner_view_bottom.show()
 	elif is_initialized and _banner_view_bottom == null:
 		_load_banner_bottom()
 
-func hide_banner() -> void:
+func hide_banner(_is_top: bool = false) -> void:
 	if _banner_view_bottom != null and _banner_view_bottom.has_method("hide"):
 		_banner_view_bottom.hide()
+
+func destroy_banner(_is_top: bool = false) -> void:
+	if _banner_view_bottom != null and _banner_view_bottom.has_method("destroy"):
+		_banner_view_bottom.destroy()
+	_banner_view_bottom = null
 
 # =================== INTERSTITIAL (RULES 2, 3, 4, 5, 6, 9, 10) ===================
 func on_level_completed(completed_level: int) -> bool:
@@ -256,6 +262,8 @@ func show_interstitial() -> void:
 
 # =================== REWARDED (RULES 1, 7, 9) ===================
 func is_rewarded_ready() -> bool:
+	if ads_suspended:
+		return false
 	if OS.get_name() != "Android":
 		return true
 	return _rewarded_ad != null
@@ -309,6 +317,9 @@ func show_rewarded_ad(callback: Callable = Callable()) -> void:
 		one_shot_cb = func():
 			if rewarded_video_completed.is_connected(one_shot_cb):
 				rewarded_video_completed.disconnect(one_shot_cb)
-			callback.call()
+			if callback.get_argument_count() == 0:
+				callback.call()
+			else:
+				callback.call(true)
 		rewarded_video_completed.connect(one_shot_cb)
 	show_rewarded_video()
