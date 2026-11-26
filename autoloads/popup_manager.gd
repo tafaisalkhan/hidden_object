@@ -16,6 +16,7 @@ const DAILY_SAVE_PATH := "user://hiddenobject_daily_streak.cfg"
 const PLAY_STORE_URL := "https://play.google.com/store/apps/details?id=com.finddifference.inimage"
 
 var support_popup_shown_this_session := false
+var coin_animation_enabled: bool = true
 
 func open_popup_animated(popup_root: Control, bg: Control) -> void:
 	popup_root.pivot_offset = popup_root.size * 0.5
@@ -585,11 +586,20 @@ func show_daily_reward_popup(parent: Node) -> void:
 		style_skyblue_button(claim_btn)
 		claim_btn.pressed.connect(func():
 			_record_claim(streak)
-			if GameManager:
-				GameManager.add_coins(int(current_reward["coins"]))
-			if parent.has_method("update_coins_display"):
-				parent.update_coins_display()
-			close_popup_animated(panel, bg)
+			var coins_to_add: int = int(current_reward["coins"])
+			var target_btn: Control = parent.get_node_or_null("MenuCoinsBtn")
+			if not target_btn:
+				target_btn = parent.get_node_or_null("UpperHUD/MarginContainer/HBoxContainer/CoinsBtn")
+			var spawn_pos: Vector2 = claim_btn.global_position + claim_btn.size * 0.5
+			var target_pos: Vector2 = target_btn.global_position + target_btn.size * 0.5 if target_btn else Vector2(1150, 40)
+			
+			play_flying_coins_effect(parent, spawn_pos, target_pos, func():
+				if GameManager:
+					GameManager.add_coins(coins_to_add)
+				if parent.has_method("update_coins_display"):
+					parent.update_coins_display()
+				close_popup_animated(panel, bg)
+			)
 		)
 	else:
 		claim_btn.text = "COME BACK TOMORROW"
@@ -737,6 +747,50 @@ func show_daily_challenge_popup(parent: Node) -> void:
 	panel.add_child(close_btn2)
 
 	open_popup_animated(panel, bg)
+
+
+# =================== FLYING COIN BURST ANIMATION ===================
+func play_flying_coins_effect(parent: Node, from_pos: Vector2, to_pos: Vector2, on_complete: Callable = Callable()) -> void:
+	if not coin_animation_enabled:
+		if on_complete.is_valid():
+			on_complete.call()
+		return
+
+	var num_coins: int = 8
+	var overlay := CanvasLayer.new()
+	overlay.layer = 200
+	parent.add_child(overlay)
+
+	for i in range(num_coins):
+		var coin_lbl := Label.new()
+		coin_lbl.text = "🪙"
+		coin_lbl.add_theme_font_size_override("font_size", 34)
+		coin_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		coin_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		coin_lbl.custom_minimum_size = Vector2(40, 40)
+		coin_lbl.position = from_pos - Vector2(20, 20)
+		coin_lbl.scale = Vector2.ZERO
+		overlay.add_child(coin_lbl)
+
+		var burst := Vector2(randf_range(-70, 70), randf_range(-50, 30))
+		var delay: float = float(i) * 0.04
+		var tw := coin_lbl.create_tween()
+		tw.tween_interval(delay)
+		tw.tween_property(coin_lbl, "scale", Vector2(1.25, 1.25), 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(coin_lbl, "position", from_pos + burst, 0.12)
+		tw.tween_property(coin_lbl, "position", to_pos - Vector2(20, 20), 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.parallel().tween_property(coin_lbl, "scale", Vector2(0.5, 0.5), 0.38)
+
+		var is_last: bool = (i == num_coins - 1)
+		tw.tween_callback(func():
+			if is_instance_valid(coin_lbl):
+				coin_lbl.queue_free()
+			if is_last:
+				if is_instance_valid(overlay):
+					overlay.queue_free()
+				if on_complete.is_valid():
+					on_complete.call()
+		)
 
 # =================== DAILY STREAK HELPERS ===================
 func _get_today_str() -> String:
