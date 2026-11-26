@@ -546,22 +546,23 @@ func _on_settings_close_pressed():
 # ── Extra Store, Daily Challenge, & Popup Suite Helpers ───────────────────────
 
 func _setup_extra_ui() -> void:
-	# Top Right Coin Pill
+	# Top Right Sky Blue Coin Pill
 	var coin_btn := Button.new()
 	coin_btn.name = "MenuCoinsBtn"
 	var coins_val: int = GameManager.coins if GameManager else 0
 	coin_btn.text = "🪙 %d +" % coins_val
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.12, 0.18, 0.32, 0.9)
-	sb.border_color = Color("#f6d36b")
+	sb.bg_color = Color("#1ea4e9") # Vibrant Sky Blue
+	sb.border_color = Color("#ffffff") # White border
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(16)
-	sb.shadow_size = 4
+	sb.shadow_size = 6
 	sb.shadow_offset = Vector2(0, 3)
-	sb.shadow_color = Color(0, 0, 0, 0.25)
+	sb.shadow_color = Color(0.04, 0.16, 0.28, 0.35)
 	coin_btn.add_theme_stylebox_override("normal", sb)
 	coin_btn.add_theme_stylebox_override("hover", sb)
 	coin_btn.add_theme_font_size_override("font_size", 20)
+	coin_btn.add_theme_color_override("font_color", Color.WHITE)
 	coin_btn.custom_minimum_size = Vector2(150, 50)
 	coin_btn.position = Vector2(get_viewport_rect().size.x - 170, 20)
 	coin_btn.pressed.connect(_open_store)
@@ -573,7 +574,7 @@ func _setup_extra_ui() -> void:
 				coin_btn.text = "🪙 %d +" % new_bal
 		)
 
-	# Additional menu buttons in MainButtonsPanel/VBoxContainer
+	# Additional menu buttons in MainButtonsPanel/VBoxContainer (matching button texture)
 	var vbox := get_node_or_null("MainButtonsPanel/VBoxContainer") as VBoxContainer
 	if vbox:
 		var challenge_btn := _create_menu_button("🏆 Daily Challenge", _on_daily_challenge_pressed)
@@ -618,16 +619,39 @@ func _create_menu_button(label_text: String, callback: Callable) -> Button:
 	btn.text = label_text
 	btn.custom_minimum_size = Vector2(250, 75)
 	btn.add_theme_font_size_override("font_size", 28)
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.14, 0.22, 0.4, 0.95)
-	sb.border_color = Color("#f6d36b")
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(18)
-	sb.shadow_size = 6
-	sb.shadow_offset = Vector2(0, 4)
-	sb.shadow_color = Color(0, 0, 0, 0.3)
-	btn.add_theme_stylebox_override("normal", sb)
-	btn.add_theme_stylebox_override("hover", sb)
+	btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	btn.add_theme_color_override("font_hover_color", Color(0.9, 0.9, 1, 1))
+	btn.add_theme_color_override("font_pressed_color", Color(0.7, 0.7, 0.8, 1))
+	btn.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
+	btn.add_theme_constant_override("outline_size", 8)
+
+	var btn_tex = preload("res://assets/main/button.png")
+	var sb_norm := StyleBoxTexture.new()
+	sb_norm.texture = btn_tex
+	sb_norm.texture_margin_left = 15.0
+	sb_norm.texture_margin_top = 15.0
+	sb_norm.texture_margin_right = 15.0
+	sb_norm.texture_margin_bottom = 15.0
+
+	var sb_hov := StyleBoxTexture.new()
+	sb_hov.texture = btn_tex
+	sb_hov.texture_margin_left = 15.0
+	sb_hov.texture_margin_top = 15.0
+	sb_hov.texture_margin_right = 15.0
+	sb_hov.texture_margin_bottom = 15.0
+	sb_hov.modulate_color = Color(0.9, 0.9, 1.1, 1.0)
+
+	var sb_press := StyleBoxTexture.new()
+	sb_press.texture = btn_tex
+	sb_press.texture_margin_left = 15.0
+	sb_press.texture_margin_top = 15.0
+	sb_press.texture_margin_right = 15.0
+	sb_press.texture_margin_bottom = 15.0
+	sb_press.modulate_color = Color(0.7, 0.7, 0.8, 1.0)
+
+	btn.add_theme_stylebox_override("normal", sb_norm)
+	btn.add_theme_stylebox_override("hover", sb_hov)
+	btn.add_theme_stylebox_override("pressed", sb_press)
 	btn.pressed.connect(callback)
 	return btn
 
@@ -638,12 +662,13 @@ func _create_settings_button(label_text: String, callback: Callable) -> Button:
 	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	btn.add_theme_font_size_override("font_size", 20)
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.14, 0.22, 0.4, 0.95)
-	sb.border_color = Color("#f6d36b")
+	sb.bg_color = Color("#1ea4e9") # Sky Blue
+	sb.border_color = Color("#ffffff")
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(14)
 	btn.add_theme_stylebox_override("normal", sb)
 	btn.add_theme_stylebox_override("hover", sb)
+	btn.add_theme_color_override("font_color", Color.WHITE)
 	btn.pressed.connect(callback)
 	return btn
 

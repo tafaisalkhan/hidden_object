@@ -70,13 +70,13 @@ func _ready() -> void:
 func _apply_styles() -> void:
 	var panel := $Center/FrameBox/Panel
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(1.0, 0.97, 0.86, 0.98) # Warm parchment card
-	sb.border_color = Color("#f6d36b") # Gold border
+	sb.bg_color = Color("#f0faff") # Luminous Sky Blue Card
+	sb.border_color = Color("#29a8ec") # Crisp Sky Blue Border
 	sb.set_border_width_all(4)
 	sb.set_corner_radius_all(24)
 	sb.shadow_size = 14
 	sb.shadow_offset = Vector2(0, 8)
-	sb.shadow_color = Color(0.02, 0.08, 0.16, 0.5)
+	sb.shadow_color = Color(0.04, 0.16, 0.28, 0.40)
 	panel.add_theme_stylebox_override("panel", sb)
 
 func _update_balance() -> void:
@@ -107,13 +107,13 @@ func _create_item_card(data: Dictionary) -> PanelContainer:
 	card.custom_minimum_size = Vector2(430, 92)
 
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("#fffdf6")
-	sb.border_color = Color("#f6d36b")
+	sb.bg_color = Color("#ffffff")
+	sb.border_color = Color("#90caf9") # Soft sky blue card border
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(16)
 	sb.shadow_size = 4
 	sb.shadow_offset = Vector2(0, 3)
-	sb.shadow_color = Color(0, 0, 0, 0.15)
+	sb.shadow_color = Color(0.04, 0.16, 0.28, 0.15)
 	card.add_theme_stylebox_override("panel", sb)
 
 	var hbox := HBoxContainer.new()
@@ -147,14 +147,14 @@ func _create_item_card(data: Dictionary) -> PanelContainer:
 	title_lbl.text = data["title"]
 	title_lbl.add_theme_font_override("font", GAME_FONT)
 	title_lbl.add_theme_font_size_override("font_size", 17)
-	title_lbl.add_theme_color_override("font_color", Color("#1b2e25"))
+	title_lbl.add_theme_color_override("font_color", Color("#0d47a1")) # Deep royal blue
 	vbox.add_child(title_lbl)
 
 	var desc_lbl := Label.new()
 	desc_lbl.text = data["desc"]
 	desc_lbl.add_theme_font_override("font", GAME_FONT)
 	desc_lbl.add_theme_font_size_override("font_size", 12)
-	desc_lbl.add_theme_color_override("font_color", Color("#5c4837"))
+	desc_lbl.add_theme_color_override("font_color", Color("#455a64"))
 	vbox.add_child(desc_lbl)
 
 	hbox.add_child(vbox)
@@ -169,7 +169,7 @@ func _create_item_card(data: Dictionary) -> PanelContainer:
 		buy_btn.text = "OWNED ✓"
 		buy_btn.disabled = true
 		var dis_sb := StyleBoxFlat.new()
-		dis_sb.bg_color = Color("#b8cddc")
+		dis_sb.bg_color = Color("#b0bec5")
 		dis_sb.set_corner_radius_all(14)
 		buy_btn.add_theme_stylebox_override("disabled", dis_sb)
 		buy_btn.add_theme_font_override("font", GAME_FONT)
@@ -177,18 +177,19 @@ func _create_item_card(data: Dictionary) -> PanelContainer:
 	else:
 		buy_btn.text = data["price"]
 		var btn_sb := StyleBoxFlat.new()
-		btn_sb.bg_color = Color("#ffd34f")
-		btn_sb.border_color = Color("#b96a0c")
+		# Sky Blue action button with dark border
+		btn_sb.bg_color = Color("#1ea4e9")
+		btn_sb.border_color = Color("#026aa7")
 		btn_sb.set_border_width_all(3)
 		btn_sb.set_corner_radius_all(14)
 		btn_sb.shadow_size = 4
 		btn_sb.shadow_offset = Vector2(0, 3)
-		btn_sb.shadow_color = Color(0, 0, 0, 0.25)
+		btn_sb.shadow_color = Color(0.04, 0.16, 0.28, 0.3)
 		buy_btn.add_theme_stylebox_override("normal", btn_sb)
 		buy_btn.add_theme_stylebox_override("hover", btn_sb)
 		buy_btn.add_theme_font_override("font", GAME_FONT)
 		buy_btn.add_theme_font_size_override("font_size", 16)
-		buy_btn.add_theme_color_override("font_color", Color("#35210e"))
+		buy_btn.add_theme_color_override("font_color", Color.WHITE)
 		buy_btn.pressed.connect(_on_buy_pressed.bind(data["id"]))
 
 	hbox.add_child(buy_btn)

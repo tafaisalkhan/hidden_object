@@ -22,13 +22,14 @@ func _setup_coins_button():
 	var coins_val: int = GameManager.coins if GameManager else 0
 	coin_btn.text = "🪙 %d +" % coins_val
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.12, 0.18, 0.32, 0.9)
-	sb.border_color = Color("#f6d36b")
+	sb.bg_color = Color("#1ea4e9") # Vibrant Sky Blue
+	sb.border_color = Color("#ffffff") # Crisp white border
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(14)
 	coin_btn.add_theme_stylebox_override("normal", sb)
 	coin_btn.add_theme_stylebox_override("hover", sb)
 	coin_btn.add_theme_font_size_override("font_size", 18)
+	coin_btn.add_theme_color_override("font_color", Color.WHITE)
 	coin_btn.custom_minimum_size = Vector2(110, 44)
 	coin_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	coin_btn.pressed.connect(func():
