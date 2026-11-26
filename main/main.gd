@@ -379,12 +379,10 @@ func _on_game_over(win: bool):
 			win_particles.emitting = true
 		_animate_victory_stars([star1, star2, star3], fill_tex)
 
-		# Flying coin animation from victory panel to UpperHUD
-		var upper_coins = get_node_or_null("UpperHUD/MarginContainer/HBoxContainer/CoinsBtn")
-		var target_pos: Vector2 = upper_coins.global_position + upper_coins.size * 0.5 if upper_coins else Vector2(1150, 40)
+		# Flying coin animation from victory panel directly to UpperHUD
 		var spawn_pos: Vector2 = score_info.global_position + score_info.size * 0.5 if score_info else Vector2(640, 360)
 		if PopupManager and PopupManager.has_method("play_flying_coins_effect"):
-			PopupManager.play_flying_coins_effect(self, spawn_pos, target_pos)
+			PopupManager.play_flying_coins_effect(self, spawn_pos, Vector2.ZERO)
 
 		var completed_count: int = GameManager.completed_levels.size() if GameManager else 1
 		AdManager.on_level_completed(completed_count)

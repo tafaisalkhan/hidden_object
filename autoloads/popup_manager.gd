@@ -1,6 +1,7 @@
 extends Node
 
 const GAME_FONT: Font = preload("res://assets/fonts/LuckiestGuy-Regular.ttf")
+const COIN_TEXTURE: Texture2D = preload("res://assets/main/coin_icon.png")
 
 const DAILY_REWARDS := [
 	{"coins": 20, "label": "20 COINS"},
@@ -553,16 +554,25 @@ func show_daily_reward_popup(parent: Node) -> void:
 		day_lbl.add_theme_color_override("font_color", Color("#0288d1") if is_today else Color("#546e7a"))
 		card.add_child(day_lbl)
 
-		# BIG COIN ICON (36px)
-		var icon_lbl := Label.new()
-		icon_lbl.text = "🪙" if not is_claimed else "✓"
-		icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		icon_lbl.position = Vector2(0, 28)
-		icon_lbl.size = Vector2(c_width, 42)
-		icon_lbl.add_theme_font_size_override("font_size", 36 if not is_claimed else 30)
-		if is_claimed:
+		# BIG COIN ICON / BADGE
+		if not is_claimed:
+			var coin_rect := TextureRect.new()
+			coin_rect.texture = COIN_TEXTURE
+			coin_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			coin_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			coin_rect.custom_minimum_size = Vector2(40, 40)
+			coin_rect.size = Vector2(40, 40)
+			coin_rect.position = Vector2((c_width - 40.0) * 0.5, 28)
+			card.add_child(coin_rect)
+		else:
+			var icon_lbl := Label.new()
+			icon_lbl.text = "✓"
+			icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			icon_lbl.position = Vector2(0, 28)
+			icon_lbl.size = Vector2(c_width, 42)
+			icon_lbl.add_theme_font_size_override("font_size", 32)
 			icon_lbl.add_theme_color_override("font_color", Color("#0288d1"))
-		card.add_child(icon_lbl)
+			card.add_child(icon_lbl)
 
 		var reward_lbl := Label.new()
 		reward_lbl.text = item["label"]
@@ -587,11 +597,8 @@ func show_daily_reward_popup(parent: Node) -> void:
 		claim_btn.pressed.connect(func():
 			_record_claim(streak)
 			var coins_to_add: int = int(current_reward["coins"])
-			var target_btn: Control = parent.get_node_or_null("MenuCoinsBtn")
-			if not target_btn:
-				target_btn = parent.get_node_or_null("UpperHUD/MarginContainer/HBoxContainer/CoinsBtn")
 			var spawn_pos: Vector2 = claim_btn.global_position + claim_btn.size * 0.5
-			var target_pos: Vector2 = target_btn.global_position + target_btn.size * 0.5 if target_btn else Vector2(1150, 40)
+			var target_pos: Vector2 = get_top_hud_coins_position(parent)
 			
 			play_flying_coins_effect(parent, spawn_pos, target_pos, func():
 				if GameManager:
@@ -749,43 +756,115 @@ func show_daily_challenge_popup(parent: Node) -> void:
 	open_popup_animated(panel, bg)
 
 
-# =================== FLYING COIN BURST ANIMATION ===================
-func play_flying_coins_effect(parent: Node, from_pos: Vector2, to_pos: Vector2, on_complete: Callable = Callable()) -> void:
-	if not coin_animation_enabled:
+# =================== FLYING COIN BURST ANIMATION TO TOP HUD ===================
+func get_top_hud_coins_position(node: Node) -> Vector2:
+	if is_instance_valid(node) and node.get_tree() and node.get_tree().root:
+		var root = node.get_tree().root
+		var upper_btn = root.find_child("CoinsBtn", true, false)
+		if is_instance_valid(upper_btn) and upper_btn is Control and upper_btn.is_visible_in_tree():
+			return upper_btn.global_position + upper_btn.size * 0.5
+		var menu_btn = root.find_child("MenuCoinsBtn", true, false)
+		if is_instance_valid(menu_btn) and menu_btn is Control and menu_btn.is_visible_in_tree():
+			return menu_btn.global_position + menu_btn.size * 0.5
+	if is_instance_valid(node) and node.get_viewport():
+		var vp_size = node.get_viewport().get_visible_rect().size
+		return Vector2(vp_size.x - 90, 42)
+	return Vector2(1190, 42)
+
+func pulse_top_hud_coins(node: Node) -> void:
+	if not is_instance_valid(node) or not node.get_tree() or not node.get_tree().root:
+		return
+	var root = node.get_tree().root
+	var upper_hud = root.find_child("UpperHUD", true, false)
+	if is_instance_valid(upper_hud) and upper_hud.has_method("pulse_coin_button"):
+		upper_hud.pulse_coin_button()
+		return
+	var menu_btn = root.find_child("MenuCoinsBtn", true, false)
+	if is_instance_valid(menu_btn) and menu_btn is Control:
+		menu_btn.pivot_offset = menu_btn.size * 0.5
+		var tw = menu_btn.create_tween()
+		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		tw.tween_property(menu_btn, "scale", Vector2(1.25, 1.25), 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(menu_btn, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+
+func play_flying_coins_effect(parent: Node, from_pos: Vector2, to_pos: Vector2 = Vector2.ZERO, on_complete: Callable = Callable()) -> void:
+	if not coin_animation_enabled or not is_instance_valid(parent):
 		if on_complete.is_valid():
 			on_complete.call()
 		return
 
-	var num_coins: int = 8
+	if to_pos == Vector2.ZERO:
+		to_pos = get_top_hud_coins_position(parent)
+
+	var num_coins: int = 12
 	var overlay := CanvasLayer.new()
-	overlay.layer = 200
-	parent.add_child(overlay)
+	overlay.layer = 250
+	parent.get_tree().root.add_child(overlay)
+
+	var completed_coins: int = 0
 
 	for i in range(num_coins):
-		var coin_lbl := Label.new()
-		coin_lbl.text = "🪙"
-		coin_lbl.add_theme_font_size_override("font_size", 34)
-		coin_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		coin_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		coin_lbl.custom_minimum_size = Vector2(40, 40)
-		coin_lbl.position = from_pos - Vector2(20, 20)
-		coin_lbl.scale = Vector2.ZERO
-		overlay.add_child(coin_lbl)
+		var coin := TextureRect.new()
+		coin.texture = COIN_TEXTURE
+		coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		coin.custom_minimum_size = Vector2(36, 36)
+		coin.size = Vector2(36, 36)
+		coin.pivot_offset = Vector2(18, 18)
+		coin.position = from_pos - Vector2(18, 18)
+		coin.scale = Vector2.ZERO
+		coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		overlay.add_child(coin)
 
-		var burst := Vector2(randf_range(-70, 70), randf_range(-50, 30))
-		var delay: float = float(i) * 0.04
-		var tw := coin_lbl.create_tween()
-		tw.tween_interval(delay)
-		tw.tween_property(coin_lbl, "scale", Vector2(1.25, 1.25), 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		tw.parallel().tween_property(coin_lbl, "position", from_pos + burst, 0.12)
-		tw.tween_property(coin_lbl, "position", to_pos - Vector2(20, 20), 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tw.parallel().tween_property(coin_lbl, "scale", Vector2(0.5, 0.5), 0.38)
+		var angle: float = (float(i) / float(num_coins)) * TAU + randf_range(-0.25, 0.25)
+		var dist: float = randf_range(55.0, 95.0)
+		var burst_pos: Vector2 = from_pos + Vector2(cos(angle), sin(angle)) * dist
+		var stagger_delay: float = float(i) * 0.03
 
-		var is_last: bool = (i == num_coins - 1)
+		# Curved arc control point towards to_pos
+		var mid_point: Vector2 = (burst_pos + to_pos) * 0.5
+		var arc_offset := Vector2(randf_range(-140.0, -40.0), randf_range(-180.0, -80.0))
+		var ctrl_point: Vector2 = mid_point + arc_offset
+
+		var tw := coin.create_tween()
+		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+
+		# 1. Stagger delay
+		tw.tween_interval(stagger_delay)
+
+		# 2. Explosive radial burst
+		tw.tween_property(coin, "scale", Vector2(1.2, 1.2), 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(coin, "position", burst_pos - Vector2(18, 18), 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(coin, "rotation", randf_range(-0.6, 0.6), 0.16)
+
+		# 3. Short anticipation hover
+		tw.tween_interval(0.04)
+
+		# 4. Smooth curved flight to Top HUD using quadratic bezier interpolation
+		var flight_duration: float = 0.44
+		tw.tween_method(func(t: float):
+			if not is_instance_valid(coin):
+				return
+			var one_minus_t: float = 1.0 - t
+			var cur_pos: Vector2 = one_minus_t * one_minus_t * burst_pos + 2.0 * one_minus_t * t * ctrl_point + t * t * to_pos
+			coin.position = cur_pos - Vector2(18, 18)
+			coin.rotation += 0.25
+			if t > 0.7:
+				var s: float = lerp(1.2, 0.4, (t - 0.7) / 0.3)
+				coin.scale = Vector2(s, s)
+		, 0.0, 1.0, flight_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+		# 5. Land at Top HUD
 		tw.tween_callback(func():
-			if is_instance_valid(coin_lbl):
-				coin_lbl.queue_free()
-			if is_last:
+			if is_instance_valid(coin):
+				coin.queue_free()
+			
+			pulse_top_hud_coins(parent)
+			if i % 3 == 0 and MusicManager and MusicManager.has_method("play_sfx"):
+				MusicManager.play_sfx("item_found")
+
+			completed_coins += 1
+			if completed_coins >= num_coins:
 				if is_instance_valid(overlay):
 					overlay.queue_free()
 				if on_complete.is_valid():

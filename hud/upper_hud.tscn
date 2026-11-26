@@ -31,6 +31,7 @@ modulate_color = Color(0.7, 0.7, 0.8, 1)
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
 
 [node name="UpperHUD" type="CanvasLayer"]
+layer = 50
 script = ExtResource("1_script")
 
 [node name="BackgroundPanel" type="ColorRect" parent="."]

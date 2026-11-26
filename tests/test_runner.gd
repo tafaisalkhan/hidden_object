@@ -78,16 +78,25 @@ func _ready():
 	else:
 		print("[FAIL] Test 4: Failed to load store_ui.tscn")
 
-	# Test 5: PopupManager Streak Logic
+	# Test 5: PopupManager Streak Logic & Flying Coin Animation
 	total += 1
 	var pm = get_node_or_null("/root/PopupManager")
 	if pm != null:
 		var days: int = pm._days_between("2026-11-20", "2026-11-26")
-		if days == 6:
-			print("[PASS] Test 5: PopupManager 7-day streak calendar logic verified")
+		var target_pos: Vector2 = pm.get_top_hud_coins_position(self)
+		var has_target: bool = (target_pos.x > 0 and target_pos.y > 0)
+		
+		# Test flying coin burst execution
+		var coin_anim_done := false
+		pm.play_flying_coins_effect(self, Vector2(640, 360), target_pos, func():
+			coin_anim_done = true
+		)
+		
+		if days == 6 and has_target:
+			print("[PASS] Test 5: PopupManager streak logic and Top HUD coin flight targeting verified")
 			passed += 1
 		else:
-			print("[FAIL] Test 5: Days calculation mismatch: %d" % days)
+			print("[FAIL] Test 5: Streak or coin target mismatch")
 	else:
 		print("[FAIL] Test 5: PopupManager not found in root")
 

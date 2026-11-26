@@ -20,7 +20,9 @@ func _setup_coins_button():
 	var coin_btn = Button.new()
 	coin_btn.name = "CoinsBtn"
 	var coins_val: int = GameManager.coins if GameManager else 0
-	coin_btn.text = "🪙 %d +" % coins_val
+	coin_btn.icon = preload("res://assets/main/coin_icon.png")
+	coin_btn.expand_icon = true
+	coin_btn.text = " %d +" % coins_val
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = Color("#1ea4e9") # Vibrant Sky Blue
 	sb.border_color = Color("#ffffff") # Crisp white border
@@ -30,7 +32,7 @@ func _setup_coins_button():
 	coin_btn.add_theme_stylebox_override("hover", sb)
 	coin_btn.add_theme_font_size_override("font_size", 18)
 	coin_btn.add_theme_color_override("font_color", Color.WHITE)
-	coin_btn.custom_minimum_size = Vector2(110, 44)
+	coin_btn.custom_minimum_size = Vector2(120, 44)
 	coin_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	coin_btn.pressed.connect(func():
 		var store_scene = load("res://scenes/ui_screens/store_ui.tscn")
@@ -58,7 +60,16 @@ func _on_lives_updated(new_lives: int):
 func _on_coins_updated(new_coins: int):
 	var btn = $MarginContainer/HBoxContainer.get_node_or_null("CoinsBtn")
 	if btn:
-		btn.text = "🪙 %d +" % new_coins
+		btn.text = " %d +" % new_coins
+		pulse_coin_button()
+
+func pulse_coin_button():
+	var btn = $MarginContainer/HBoxContainer.get_node_or_null("CoinsBtn")
+	if btn:
+		btn.pivot_offset = btn.size * 0.5
+		var tw = btn.create_tween()
+		tw.tween_property(btn, "scale", Vector2(1.25, 1.25), 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(btn, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 
 func _play_heart_pulse():
 	heart_icon.pivot_offset = heart_icon.size / 2.0

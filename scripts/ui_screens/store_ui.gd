@@ -58,6 +58,9 @@ func _ready() -> void:
 	if BillingManager:
 		BillingManager.coin_purchase_changed.connect(func(_id, _coins):
 			_update_balance()
+			if PopupManager and PopupManager.has_method("play_flying_coins_effect"):
+				var from_pos: Vector2 = balance_label.global_position + balance_label.size * 0.5
+				PopupManager.play_flying_coins_effect(self, from_pos, Vector2.ZERO)
 		)
 		BillingManager.remove_ads_purchase_changed.connect(func(_owned):
 			_build_items()
@@ -129,14 +132,22 @@ func _create_item_card(data: Dictionary) -> PanelContainer:
 	margin.add_child(hbox)
 	card.add_child(margin)
 
-	# Big Icon (36px)
-	var icon_lbl := Label.new()
-	icon_lbl.text = data["icon"]
-	icon_lbl.custom_minimum_size = Vector2(46, 46)
-	icon_lbl.add_theme_font_size_override("font_size", 36)
-	icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	hbox.add_child(icon_lbl)
+	# Big Icon / Graphic
+	if str(data.get("type", "")) == "coins":
+		var coin_tex := TextureRect.new()
+		coin_tex.texture = preload("res://assets/main/coin_icon.png")
+		coin_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		coin_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		coin_tex.custom_minimum_size = Vector2(46, 46)
+		hbox.add_child(coin_tex)
+	else:
+		var icon_lbl := Label.new()
+		icon_lbl.text = data["icon"]
+		icon_lbl.custom_minimum_size = Vector2(46, 46)
+		icon_lbl.add_theme_font_size_override("font_size", 36)
+		icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		hbox.add_child(icon_lbl)
 
 	# Text column
 	var vbox := VBoxContainer.new()

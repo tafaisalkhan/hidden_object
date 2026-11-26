@@ -550,7 +550,9 @@ func _setup_extra_ui() -> void:
 	var coin_btn := Button.new()
 	coin_btn.name = "MenuCoinsBtn"
 	var coins_val: int = GameManager.coins if GameManager else 0
-	coin_btn.text = "🪙 %d +" % coins_val
+	coin_btn.icon = preload("res://assets/main/coin_icon.png")
+	coin_btn.expand_icon = true
+	coin_btn.text = " %d +" % coins_val
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color("#1ea4e9") # Vibrant Sky Blue
 	sb.border_color = Color("#ffffff") # White border
@@ -563,15 +565,16 @@ func _setup_extra_ui() -> void:
 	coin_btn.add_theme_stylebox_override("hover", sb)
 	coin_btn.add_theme_font_size_override("font_size", 20)
 	coin_btn.add_theme_color_override("font_color", Color.WHITE)
-	coin_btn.custom_minimum_size = Vector2(150, 50)
-	coin_btn.position = Vector2(get_viewport_rect().size.x - 170, 20)
+	coin_btn.custom_minimum_size = Vector2(160, 50)
+	coin_btn.position = Vector2(get_viewport_rect().size.x - 180, 20)
 	coin_btn.pressed.connect(_open_store)
 	add_child(coin_btn)
 
 	if SignalHub:
 		SignalHub.coins_updated.connect(func(new_bal):
 			if is_instance_valid(coin_btn):
-				coin_btn.text = "🪙 %d +" % new_bal
+				coin_btn.text = " %d +" % new_bal
+				pulse_coin_button()
 		)
 
 	# Additional menu buttons in MainButtonsPanel/VBoxContainer (matching button texture)
@@ -671,6 +674,15 @@ func _create_settings_button(label_text: String, callback: Callable) -> Button:
 	btn.add_theme_color_override("font_color", Color.WHITE)
 	btn.pressed.connect(callback)
 	return btn
+
+func pulse_coin_button() -> void:
+	var btn = get_node_or_null("MenuCoinsBtn")
+	if btn:
+		btn.pivot_offset = btn.size * 0.5
+		var tw = btn.create_tween()
+		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		tw.tween_property(btn, "scale", Vector2(1.25, 1.25), 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(btn, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 
 func _open_store() -> void:
 	var store_scene = load("res://scenes/ui_screens/store_ui.tscn")
