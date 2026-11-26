@@ -10,10 +10,37 @@ var last_lives: int = -1
 func _ready():
 	SignalHub.score_updated.connect(_on_score_updated)
 	SignalHub.lives_updated.connect(_on_lives_updated)
+	SignalHub.coins_updated.connect(_on_coins_updated)
 	if exit_btn:
 		exit_btn.pressed.connect(_on_exit_pressed)
+	_setup_coins_button()
+
+func _setup_coins_button():
+	var hbox = $MarginContainer/HBoxContainer
+	var coin_btn = Button.new()
+	coin_btn.name = "CoinsBtn"
+	var coins_val: int = GameManager.coins if GameManager else 0
+	coin_btn.text = "🪙 %d +" % coins_val
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.12, 0.18, 0.32, 0.9)
+	sb.border_color = Color("#f6d36b")
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(14)
+	coin_btn.add_theme_stylebox_override("normal", sb)
+	coin_btn.add_theme_stylebox_override("hover", sb)
+	coin_btn.add_theme_font_size_override("font_size", 18)
+	coin_btn.custom_minimum_size = Vector2(110, 44)
+	coin_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	coin_btn.pressed.connect(func():
+		var store_scene = load("res://scenes/ui_screens/store_ui.tscn")
+		if store_scene:
+			var store = store_scene.instantiate()
+			get_tree().current_scene.add_child(store)
+	)
+	hbox.add_child(coin_btn)
 
 func _on_exit_pressed():
+	AdManager.set_gameplay_active(false)
 	if GameManager:
 		GameManager.return_to_level_select = true
 	get_tree().change_scene_to_file("res://main/main_menu.tscn")
@@ -23,19 +50,17 @@ func _on_score_updated(new_score: int):
 
 func _on_lives_updated(new_lives: int):
 	lives_label.text = "x " + str(new_lives)
-	
-	# If lives decreased, pulse the heart icon
 	if last_lives != -1 and new_lives < last_lives:
 		_play_heart_pulse()
-		
 	last_lives = new_lives
 
+func _on_coins_updated(new_coins: int):
+	var btn = $MarginContainer/HBoxContainer.get_node_or_null("CoinsBtn")
+	if btn:
+		btn.text = "🪙 %d +" % new_coins
+
 func _play_heart_pulse():
-	# Ensure pivot is centered for a clean scaling animation
 	heart_icon.pivot_offset = heart_icon.size / 2.0
-	
 	var tween = create_tween()
-	# Scale up quickly
 	tween.tween_property(heart_icon, "scale", Vector2(1.4, 1.4), 0.15).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	# Bounce back to normal
 	tween.tween_property(heart_icon, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)

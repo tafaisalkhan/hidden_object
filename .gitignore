@@ -1,4 +1,4 @@
-﻿# Godot 4+ .gitignore
+# Godot 4+ .gitignore
 .godot/
 *.import
 export_presets.cfg
@@ -6,3 +6,16 @@ export_presets.cfg
 *.log
 .DS_Store
 Thumbs.db
+
+# Secrets, Keystores, Big Assets, JSON (NEVER COMMIT)
+assets/
+data/
+*.json
+*.keystore
+*.jks
+admob_secrets.gd
+admob_secrets.gd.uid
+build/
+*.aab
+*.apk
+*.uid

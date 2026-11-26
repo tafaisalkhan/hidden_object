@@ -65,6 +65,14 @@ func _ready():
 		level_select_panel.visible = false
 		settings_panel.visible = false
 
+	_setup_extra_ui()
+	_update_settings_ui()
+
+	get_tree().create_timer(0.6).timeout.connect(func():
+		if is_instance_valid(self) and PopupManager and PopupManager._can_claim_today():
+			PopupManager.show_daily_reward_popup(self)
+	)
+
 func _process(delta: float) -> void:
 	# 1. Smooth Category Scroll processing
 	if category_select_panel and category_select_panel.visible and category_scroll:
@@ -522,14 +530,133 @@ func _on_music_toggle_pressed():
 				MusicManager.stop_all()
 
 func _on_remove_ads_pressed():
-	InAppPurchaseManager.purchase_remove_ads(func(success: bool):
-		_update_settings_ui()
-	)
+	if BillingManager:
+		BillingManager.purchase_remove_ads()
+	_update_settings_ui()
 
 func _on_restore_purchases_pressed():
-	InAppPurchaseManager.restore_purchases(func(success: bool):
-		_update_settings_ui()
-	)
+	if BillingManager and BillingManager.plugin and BillingManager.plugin.has_method("queryPurchases"):
+		BillingManager.plugin.queryPurchases("inapp")
+	_update_settings_ui()
 
 func _on_settings_close_pressed():
 	settings_panel.visible = false
+
+
+# ── Extra Store, Daily Challenge, & Popup Suite Helpers ───────────────────────
+
+func _setup_extra_ui() -> void:
+	# Top Right Coin Pill
+	var coin_btn := Button.new()
+	coin_btn.name = "MenuCoinsBtn"
+	var coins_val: int = GameManager.coins if GameManager else 0
+	coin_btn.text = "🪙 %d +" % coins_val
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.12, 0.18, 0.32, 0.9)
+	sb.border_color = Color("#f6d36b")
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(16)
+	sb.shadow_size = 4
+	sb.shadow_offset = Vector2(0, 3)
+	sb.shadow_color = Color(0, 0, 0, 0.25)
+	coin_btn.add_theme_stylebox_override("normal", sb)
+	coin_btn.add_theme_stylebox_override("hover", sb)
+	coin_btn.add_theme_font_size_override("font_size", 20)
+	coin_btn.custom_minimum_size = Vector2(150, 50)
+	coin_btn.position = Vector2(get_viewport_rect().size.x - 170, 20)
+	coin_btn.pressed.connect(_open_store)
+	add_child(coin_btn)
+
+	if SignalHub:
+		SignalHub.coins_updated.connect(func(new_bal):
+			if is_instance_valid(coin_btn):
+				coin_btn.text = "🪙 %d +" % new_bal
+		)
+
+	# Additional menu buttons in MainButtonsPanel/VBoxContainer
+	var vbox := get_node_or_null("MainButtonsPanel/VBoxContainer") as VBoxContainer
+	if vbox:
+		var challenge_btn := _create_menu_button("🏆 Daily Challenge", _on_daily_challenge_pressed)
+		var gifts_btn := _create_menu_button("🎁 Daily Gifts", _on_daily_gifts_pressed)
+		var store_btn := _create_menu_button("🛒 Store", _open_store)
+		
+		var settings_btn := get_node_or_null("MainButtonsPanel/VBoxContainer/SettingsButton")
+		var settings_idx: int = settings_btn.get_index() if settings_btn else vbox.get_child_count()
+		vbox.add_child(challenge_btn)
+		vbox.move_child(challenge_btn, settings_idx)
+		vbox.add_child(gifts_btn)
+		vbox.move_child(gifts_btn, settings_idx + 1)
+		vbox.add_child(store_btn)
+		vbox.move_child(store_btn, settings_idx + 2)
+
+	# Extra buttons in SettingsPanel
+	var settings_vbox := get_node_or_null("SettingsPanel/CenterContainer/VBox") as VBoxContainer
+	if settings_vbox:
+		var close_btn := get_node_or_null("SettingsPanel/CenterContainer/VBox/SettingsCloseBtn")
+		var close_idx: int = close_btn.get_index() if close_btn else settings_vbox.get_child_count()
+		var update_btn := _create_settings_button("🚀 Check Update", func():
+			if PopupManager:
+				PopupManager.show_in_app_update_popup(self)
+		)
+		var rate_btn := _create_settings_button("★ Rate Us", func():
+			if PopupManager:
+				PopupManager.show_rate_popup(self)
+		)
+		var share_btn := _create_settings_button("🔗 Share Game", func():
+			if PopupManager:
+				PopupManager.show_share_popup(self)
+		)
+		settings_vbox.add_child(update_btn)
+		settings_vbox.move_child(update_btn, close_idx)
+		settings_vbox.add_child(rate_btn)
+		settings_vbox.move_child(rate_btn, close_idx + 1)
+		settings_vbox.add_child(share_btn)
+		settings_vbox.move_child(share_btn, close_idx + 2)
+
+func _create_menu_button(label_text: String, callback: Callable) -> Button:
+	var btn := Button.new()
+	btn.text = label_text
+	btn.custom_minimum_size = Vector2(250, 75)
+	btn.add_theme_font_size_override("font_size", 28)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.14, 0.22, 0.4, 0.95)
+	sb.border_color = Color("#f6d36b")
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(18)
+	sb.shadow_size = 6
+	sb.shadow_offset = Vector2(0, 4)
+	sb.shadow_color = Color(0, 0, 0, 0.3)
+	btn.add_theme_stylebox_override("normal", sb)
+	btn.add_theme_stylebox_override("hover", sb)
+	btn.pressed.connect(callback)
+	return btn
+
+func _create_settings_button(label_text: String, callback: Callable) -> Button:
+	var btn := Button.new()
+	btn.text = label_text
+	btn.custom_minimum_size = Vector2(280, 50)
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	btn.add_theme_font_size_override("font_size", 20)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.14, 0.22, 0.4, 0.95)
+	sb.border_color = Color("#f6d36b")
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(14)
+	btn.add_theme_stylebox_override("normal", sb)
+	btn.add_theme_stylebox_override("hover", sb)
+	btn.pressed.connect(callback)
+	return btn
+
+func _open_store() -> void:
+	var store_scene = load("res://scenes/ui_screens/store_ui.tscn")
+	if store_scene:
+		var store = store_scene.instantiate()
+		add_child(store)
+
+func _on_daily_challenge_pressed() -> void:
+	if PopupManager:
+		PopupManager.show_daily_challenge_popup(self)
+
+func _on_daily_gifts_pressed() -> void:
+	if PopupManager:
+		PopupManager.show_daily_reward_popup(self)

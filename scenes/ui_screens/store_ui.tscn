@@ -1,0 +1,100 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui_screens/store_ui.gd" id="1"]
+[ext_resource type="FontFile" path="res://assets/fonts/LuckiestGuy-Regular.ttf" id="2"]
+
+[node name="StoreUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Scrim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.07, 0.14, 0.75)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FrameBox" type="Control" parent="Center"]
+custom_minimum_size = Vector2(470, 680)
+layout_mode = 2
+
+[node name="Panel" type="PanelContainer" parent="Center/FrameBox"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Layout" type="VBoxContainer" parent="Center/FrameBox/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SpacerTop" type="Control" parent="Center/FrameBox/Panel/Layout"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Eyebrow" type="Label" parent="Center/FrameBox/Panel/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.725, 0.416, 0.047, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 14
+text = "DIFFERENCE FIND STORE"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="Center/FrameBox/Panel/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.106, 0.18, 0.145, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 28
+text = "Get Coins & Perks"
+horizontal_alignment = 1
+
+[node name="BalanceLabel" type="Label" parent="Center/FrameBox/Panel/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.725, 0.416, 0.047, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 22
+text = "🪙  0 COINS"
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="Center/FrameBox/Panel/Layout"]
+custom_minimum_size = Vector2(0, 480)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Items" type="VBoxContainer" parent="Center/FrameBox/Panel/Layout/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="CloseButton" type="Button" parent="Center/FrameBox"]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -52.0
+offset_top = 12.0
+offset_right = -8.0
+offset_bottom = 56.0
+grow_horizontal = 0
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 18
+text = "✕"

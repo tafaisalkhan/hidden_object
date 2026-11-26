@@ -48,6 +48,7 @@ func _ready():
 	load_level(level_id)
 
 func load_level(id: String):
+	AdManager.set_gameplay_active(true)
 	level_id = id
 	# Hide game over overlay on load
 	game_over_hud.visible = false
@@ -349,16 +350,22 @@ func _on_game_over(win: bool):
 	star1.texture = empty_tex
 	star2.texture = empty_tex
 	star3.texture = empty_tex
-	
+	AdManager.set_gameplay_active(false)
+
 	if win:
-		title.text = "LEVEL COMPLETED!"
-		title.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4, 1.0)) # Soft green
-		
-		# Play win sound
+		if GameManager and GameManager.is_daily_challenge_mode:
+			title.text = "DAILY CHALLENGE WON!"
+			score_info.text = "Score: %d  (+100 Bonus Coins 🪙)" % GameManager.score
+			GameManager.add_coins(100)
+			GameManager.is_daily_challenge_mode = false
+		else:
+			title.text = "LEVEL COMPLETED!"
+			score_info.text = "Final Score: " + str(GameManager.score)
+		title.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4, 1.0))
+
 		if MusicManager:
 			MusicManager.play_sfx("win")
-		
-		# Show Continue and Play Again buttons
+
 		continue_btn.visible = true
 		var next_sub = GameManager.get_next_sublevel_id() if GameManager else ""
 		if next_sub != "":
@@ -366,32 +373,26 @@ func _on_game_over(win: bool):
 		else:
 			continue_btn.text = "Select Level"
 		retry_btn.text = "Play Again 🔄"
-		
-		# Trigger particles & flying star filling animations
+
 		if win_particles:
 			win_particles.restart()
 			win_particles.emitting = true
 		_animate_victory_stars([star1, star2, star3], fill_tex)
+
+		var completed_count: int = GameManager.completed_levels.size() if GameManager else 1
+		AdManager.on_level_completed(completed_count)
 	else:
 		title.text = "GAME OVER"
-		title.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2, 1.0)) # Soft red
-		
-		# Play lose sound
+		title.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2, 1.0))
+		score_info.text = "Final Score: " + str(GameManager.score)
+
 		if MusicManager:
 			MusicManager.play_sfx("lose")
-		
-		# Hide Continue, show Rewarded Ad Retry button
+
 		continue_btn.visible = false
-		retry_btn.text = "🎬 Retry (+3 ❤)"
-		
-	score_info.text = "Final Score: " + str(GameManager.score)
+		retry_btn.text = "TRY AGAIN 🔄"
+
 	game_over_hud.visible = true
-	
-	# Show interstitial ad every time a game ends (win or lose)
-	get_tree().create_timer(2.0).timeout.connect(func():
-		if is_instance_valid(self) and game_over_hud.visible:
-			AdManager.show_interstitial_ad()
-	)
 
 func _animate_victory_stars(stars: Array, fill_tex: Texture2D):
 	for i in range(stars.size()):
@@ -432,15 +433,7 @@ func _animate_victory_stars(stars: Array, fill_tex: Texture2D):
 		)
 
 func _on_retry_pressed():
-	# If lives ended (lost level), watch rewarded video ad to retry with full 3 lives
-	if GameManager and GameManager.lives <= 0:
-		AdManager.show_rewarded_ad(func():
-			if is_instance_valid(self):
-				load_level(level_id)
-		)
-	else:
-		# If user won and chose Play Again, reload directly
-		load_level(level_id)
+	load_level(level_id)
 
 func _on_continue_pressed():
 	if GameManager:
@@ -455,7 +448,9 @@ func _on_continue_pressed():
 	_on_menu_pressed()
 
 func _on_menu_pressed():
+	AdManager.set_gameplay_active(false)
 	if GameManager:
+		GameManager.is_daily_challenge_mode = false
 		GameManager.return_to_level_select = true
 	get_tree().change_scene_to_file("res://main/main_menu.tscn")
 

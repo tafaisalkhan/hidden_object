@@ -1,249 +1,314 @@
 extends Node
+## AdManager - Google AdMob integration (Poing AdMob Plugin v5)
+## Enforces Google AdMob Policy Standard & 10 Anti-Suspension Rules
 
-# Google AdMob App ID and Ad Unit IDs
-const ADMOB_APP_ID: String = "ca-app-pub-1852108665659812~9828050799"
-const BANNER_AD_ID: String = "ca-app-pub-1852108665659812/2570759337"
-const INTERSTITIAL_AD_ID: String = "ca-app-pub-1852108665659812/1949560770"
-const REWARDED_AD_ID: String = "ca-app-pub-1852108665659812/6071020642"
+# Google Test Ad Unit IDs (NEVER commit production IDs to GitHub)
+const ADMOB_APP_ID: String = "ca-app-pub-3940256099942544~3347511713"
+const BANNER_AD_ID: String = "ca-app-pub-3940256099942544/6300978111"
+const INTERSTITIAL_AD_ID: String = "ca-app-pub-3940256099942544/1033173712"
+const REWARDED_AD_ID: String = "ca-app-pub-3940256099942544/5224354917"
+const PLAY_STORE_URL := "https://play.google.com/store/apps/details?id=com.finddifference.inimage"
+
+# --- AdMob Anti-Suspension Policy Constants ---
+const INTERSTITIAL_EVERY_N_LEVELS := 3
+const MIN_INTERSTITIAL_INTERVAL_SEC := 120.0
+const MAX_INTERSTITIALS_PER_HOUR := 10
+const ROLLING_HOUR_SEC := 3600.0
 
 static var instance: Node
 static var is_initialized: bool = false
-signal on_admob_initialized
+var _plugin_available: bool = false
 
-# Cached loaded ad objects (Poing AdMob v5 pattern)
-var _banner_view = null
+signal rewarded_video_completed
+signal rewarded_video_unavailable(message: String)
+signal rewarded_ready_changed(ready: bool)
+signal in_app_update_available(available: bool)
+signal in_app_update_downloaded
+
+# Policy tracking variables
+var levels_since_interstitial: int = 0
+var last_interstitial_unix_sec: float = -9999.0
+var interstitial_timestamps_sec: Array[float] = []
+var gameplay_active: bool = false
+var reward_pending: bool = false
+
+# Backoff retry timers (Rule 9: Exponential backoff 2s -> 4s -> 8s -> 16s -> 32s -> 64s)
+var _banner_retry_delay: float = 2.0
+var _interstitial_retry_delay: float = 2.0
+var _rewarded_retry_delay: float = 2.0
+
+# Cached loaded ad objects
+var _banner_view_bottom = null
 var _interstitial_ad = null
 var _rewarded_ad = null
 
+# Callback references
+var _init_listener = null
+var _banner_cb = null
+var _interstitial_cb = null
+var _rewarded_cb = null
+var _reward_listener = null
+
+var banner_id: String = BANNER_AD_ID
+var interstitial_id: String = INTERSTITIAL_AD_ID
+var rewarded_id: String = REWARDED_AD_ID
+
+var _app_plugin: Object = null
 
 func _enter_tree() -> void:
-	print("[AdManager] _enter_tree")
 	instance = self
 
-
 func _ready() -> void:
-	print("[AdManager] _ready start")
-	if ClassDB.class_exists("MobileAds") or Engine.has_singleton("MobileAds") or ClassDB.class_exists("OnInitializationCompleteListener"):
+	_init_app_plugin()
+	if OS.get_name() == "Android":
+		_plugin_available = true
+		_load_local_ad_ids()
+		if OS.has_feature("debug"):
+			banner_id = BANNER_AD_ID
+			interstitial_id = INTERSTITIAL_AD_ID
+			rewarded_id = REWARDED_AD_ID
 		_init_admob()
 	else:
-		print("[AdManager] MobileAds classes not present in this build environment (Editor/Desktop mode).")
+		print("[AdManager] Desktop/Editor mode - ads simulated")
 
+func _init_app_plugin() -> void:
+	if Engine.has_singleton("AppPlugin"):
+		_app_plugin = Engine.get_singleton("AppPlugin")
+	elif Engine.has_singleton("GodotGooglePlayUpdate"):
+		_app_plugin = Engine.get_singleton("GodotGooglePlayUpdate")
+	
+	if _app_plugin:
+		if _app_plugin.has_signal("in_app_update_available"):
+			_app_plugin.connect("in_app_update_available", Callable(self, "_on_plugin_update_available"))
+		if _app_plugin.has_signal("in_app_update_downloaded"):
+			_app_plugin.connect("in_app_update_downloaded", Callable(self, "_on_plugin_update_downloaded"))
+
+func _on_plugin_update_available(available: bool) -> void:
+	in_app_update_available.emit(available)
+
+func _on_plugin_update_downloaded() -> void:
+	in_app_update_downloaded.emit()
+
+func check_in_app_update() -> void:
+	if _app_plugin and _app_plugin.has_method("check_for_update"):
+		_app_plugin.check_for_update()
+
+func start_in_app_update() -> void:
+	if _app_plugin and _app_plugin.has_method("start_update"):
+		_app_plugin.start_update()
+
+func request_rate_app() -> void:
+	if _app_plugin and _app_plugin.has_method("request_review"):
+		_app_plugin.request_review()
+	else:
+		OS.shell_open(PLAY_STORE_URL)
+
+func request_share_game() -> void:
+	if _app_plugin and _app_plugin.has_method("share_text"):
+		_app_plugin.share_text("Find the hidden differences and objects! Download: " + PLAY_STORE_URL)
+	else:
+		DisplayServer.clipboard_set(PLAY_STORE_URL)
+
+func _load_local_ad_ids() -> void:
+	if ResourceLoader.exists("res://admob_secrets.gd"):
+		var secrets = load("res://admob_secrets.gd")
+		if secrets != null:
+			if "BANNER_AD_ID" in secrets and not str(secrets.BANNER_AD_ID).is_empty():
+				banner_id = str(secrets.BANNER_AD_ID)
+			if "INTERSTITIAL_AD_ID" in secrets and not str(secrets.INTERSTITIAL_AD_ID).is_empty():
+				interstitial_id = str(secrets.INTERSTITIAL_AD_ID)
+			if "REWARDED_AD_ID" in secrets and not str(secrets.REWARDED_AD_ID).is_empty():
+				rewarded_id = str(secrets.REWARDED_AD_ID)
 
 func _init_admob() -> void:
-	if not ClassDB.class_exists("OnInitializationCompleteListener"):
+	if not _plugin_available:
 		return
-		
-	var init_listener = ClassDB.instantiate("OnInitializationCompleteListener") if ClassDB.can_instantiate("OnInitializationCompleteListener") else null
-	if not init_listener:
+	if ClassDB.class_exists("OnInitializationCompleteListener"):
+		_init_listener = ClassDB.instantiate("OnInitializationCompleteListener")
+		_init_listener.on_initialization_complete = func(_status) -> void:
+			print("[AdManager] Native AdMob initialized!")
+			is_initialized = true
+			_load_banner_bottom()
+			_load_interstitial()
+			_load_rewarded()
+		if Engine.has_singleton("MobileAds"):
+			Engine.get_singleton("MobileAds").initialize(_init_listener)
+
+func is_ad_free() -> bool:
+	if not is_inside_tree():
+		return false
+	var billing := get_node_or_null("/root/BillingManager")
+	if billing != null and billing.has_method("is_remove_ads_owned"):
+		return billing.is_remove_ads_owned()
+	var gm := get_node_or_null("/root/GameManager")
+	return gm != null and "ads_removed" in gm and gm.ads_removed
+
+func set_gameplay_active(active: bool) -> void:
+	gameplay_active = active
+	if gameplay_active:
+		hide_banner()
+
+# =================== BANNER (RULE 6, RULE 8, RULE 10) ===================
+func _load_banner_bottom() -> void:
+	if not is_initialized or _banner_view_bottom != null or is_ad_free():
 		return
-		
-	init_listener.on_initialization_complete = func(_status) -> void:
-		print("[AdManager] MobileAds native initialization complete!")
-		is_initialized = true
-		on_admob_initialized.emit()
-		_load_banner()
-		_load_interstitial()
-		_load_rewarded()
-		
-	if ClassDB.class_exists("MobileAds"):
-		var mobile_ads_script = load("res://addons/admob/gdscript/mobile_ads.gd")
-		if mobile_ads_script and mobile_ads_script.has_method("initialize"):
-			mobile_ads_script.initialize(init_listener)
-		elif Engine.has_singleton("MobileAds"):
-			Engine.get_singleton("MobileAds").initialize(init_listener)
-	print("[AdManager] MobileAds initialization requested.")
-
-
-# ── Banner Ad ───────────────────────────────────────────────────────────────
-
-func _load_banner() -> void:
-	if InAppPurchaseManager.is_ads_removed:
-		print("[AdManager] Banner skipped: Ads removed via IAP.")
+	if not ClassDB.class_exists("AdView"):
 		return
-	if not is_initialized or not ClassDB.class_exists("AdView"):
+	_banner_view_bottom = ClassDB.instantiate("AdView")
+	if _banner_view_bottom.has_method("load_ad"):
+		_banner_view_bottom.load_ad()
+
+func show_banner() -> void:
+	if is_ad_free() or gameplay_active:
+		hide_banner()
 		return
-		
-	if _banner_view != null:
-		return # Already loaded
-		
-	var ad_size = ClassDB.instantiate("AdSize")
-	var banner_size = ad_size.BANNER if ("BANNER" in ad_size) else null
-	var ad_position = ClassDB.instantiate("AdPosition")
-	var bottom_pos = ad_position.BOTTOM if ("BOTTOM" in ad_position) else 1
-	
-	_banner_view = ClassDB.instantiate("AdView")
-	_banner_view.create(BANNER_AD_ID, banner_size, bottom_pos)
-	
-	var cb = ClassDB.instantiate("AdListener")
-	cb.on_ad_loaded = func():
-		print("[AdManager] Banner loaded successfully!")
-	cb.on_ad_failed_to_load = func(_err):
-		print("[AdManager] Banner failed to load.")
-	_banner_view.ad_listener = cb
-	
-	var req = ClassDB.instantiate("AdRequest")
-	_banner_view.load_ad(req)
+	if _banner_view_bottom != null and _banner_view_bottom.has_method("show"):
+		_banner_view_bottom.show()
+	elif is_initialized and _banner_view_bottom == null:
+		_load_banner_bottom()
 
+func hide_banner() -> void:
+	if _banner_view_bottom != null and _banner_view_bottom.has_method("hide"):
+		_banner_view_bottom.hide()
 
-static func show_banner() -> void:
-	if InAppPurchaseManager.is_ads_removed:
-		return
-	if instance:
-		if instance._banner_view == null:
-			instance._load_banner()
-		elif instance._banner_view.has_method("show"):
-			instance._banner_view.show()
+# =================== INTERSTITIAL (RULES 2, 3, 4, 5, 6, 9, 10) ===================
+func on_level_completed(completed_level: int) -> bool:
+	set_gameplay_active(false)
+	if is_ad_free():
+		return false
+	# Rule 2: Level 1 must NEVER show an interstitial
+	if completed_level <= 1:
+		return false
+	levels_since_interstitial += 1
+	# Rule 3: Interstitial only every 3 completed levels
+	if levels_since_interstitial >= INTERSTITIAL_EVERY_N_LEVELS:
+		if can_show_interstitial_now():
+			levels_since_interstitial = 0
+			show_interstitial()
+			return true
+	return false
 
+func can_show_interstitial_now() -> bool:
+	if is_ad_free() or gameplay_active:
+		return false
+	if not is_interstitial_ready():
+		return false
+	var now_sec := Time.get_unix_time_from_system()
+	# Rule 4: Minimum 120 seconds between interstitials
+	if (now_sec - last_interstitial_unix_sec) < MIN_INTERSTITIAL_INTERVAL_SEC:
+		return false
+	# Rule 5: Maximum 10 interstitials per rolling hour
+	_prune_hourly_interstitial_log(now_sec)
+	if interstitial_timestamps_sec.size() >= MAX_INTERSTITIALS_PER_HOUR:
+		return false
+	return true
 
-static func hide_banner() -> void:
-	if instance and instance._banner_view and instance._banner_view.has_method("hide"):
-		instance._banner_view.hide()
+func _prune_hourly_interstitial_log(now_sec: float) -> void:
+	var cutoff := now_sec - ROLLING_HOUR_SEC
+	var pruned: Array[float] = []
+	for ts in interstitial_timestamps_sec:
+		if ts >= cutoff:
+			pruned.append(ts)
+	interstitial_timestamps_sec = pruned
 
-
-static func destroy_banner() -> void:
-	if instance and instance._banner_view and instance._banner_view.has_method("destroy"):
-		instance._banner_view.destroy()
-		instance._banner_view = null
-
-
-# ── Interstitial Ad ─────────────────────────────────────────────────────────
+func is_interstitial_ready() -> bool:
+	if OS.get_name() != "Android":
+		return true
+	return _interstitial_ad != null
 
 func _load_interstitial() -> void:
-	if not is_initialized or not ClassDB.class_exists("InterstitialAdLoader"):
-		print("[AdManager] Interstitial load postponed: Waiting for AdMob initialization.")
+	if not is_initialized or is_ad_free() or _interstitial_ad != null:
 		return
-		
+	if not ClassDB.class_exists("InterstitialAdLoader"):
+		return
 	var loader = ClassDB.instantiate("InterstitialAdLoader")
-	var cb = ClassDB.instantiate("InterstitialAdLoadCallback")
-	var req = ClassDB.instantiate("AdRequest")
-	
-	cb.on_ad_loaded = func(ad) -> void:
+	_interstitial_cb = ClassDB.instantiate("InterstitialAdLoadCallback")
+	_interstitial_cb.on_ad_loaded = func(ad) -> void:
 		_interstitial_ad = ad
-		print("[AdManager] Interstitial Ad loaded successfully!")
-		# Auto-reload after dismiss so a fresh ad is ready next time
-		ad.full_screen_content_callback.on_ad_dismissed_full_screen_content = func():
-			_interstitial_ad = null
-			_load_interstitial()
-		ad.full_screen_content_callback.on_ad_failed_to_show_full_screen_content = func(_err):
-			_interstitial_ad = null
-			_load_interstitial()
-			
-	cb.on_ad_failed_to_load = func(_err) -> void:
+		_interstitial_retry_delay = 2.0
+		if ad and "full_screen_content_callback" in ad:
+			ad.full_screen_content_callback.on_ad_dismissed_full_screen_content = func():
+				_interstitial_ad = null
+				_load_interstitial()
+			ad.full_screen_content_callback.on_ad_failed_to_show_full_screen_content = func(_err):
+				_interstitial_ad = null
+				_load_interstitial()
+	_interstitial_cb.on_ad_failed_to_load = func(_err) -> void:
 		_interstitial_ad = null
-		print("[AdManager] Interstitial Ad failed to load.")
-		
-	loader.load(INTERSTITIAL_AD_ID, req, cb)
+		# Rule 9: Exponential backoff
+		get_tree().create_timer(_interstitial_retry_delay).timeout.connect(_load_interstitial)
+		_interstitial_retry_delay = minf(_interstitial_retry_delay * 2.0, 64.0)
+	
+	if ClassDB.class_exists("AdRequest"):
+		loader.load(interstitial_id, ClassDB.instantiate("AdRequest"), _interstitial_cb)
 
-
-static func show_interstitial_ad() -> void:
-	if InAppPurchaseManager.is_ads_removed:
-		print("[AdManager] Interstitial Ad skipped: Ads removed via IAP.")
+func show_interstitial() -> void:
+	if is_ad_free() or gameplay_active:
 		return
-		
-	if instance and instance._interstitial_ad:
-		instance._interstitial_ad.show()
+	var now_sec := Time.get_unix_time_from_system()
+	if _interstitial_ad != null and _interstitial_ad.has_method("show"):
+		last_interstitial_unix_sec = now_sec
+		interstitial_timestamps_sec.append(now_sec)
+		_interstitial_ad.show()
 	else:
-		show_toast("Ad not ready yet.")
-		if instance:
-			instance._load_interstitial()
+		if is_initialized and not is_ad_free():
+			_load_interstitial()
 
-
-# ── Rewarded Ad ─────────────────────────────────────────────────────────────
+# =================== REWARDED (RULES 1, 7, 9) ===================
+func is_rewarded_ready() -> bool:
+	if OS.get_name() != "Android":
+		return true
+	return _rewarded_ad != null
 
 func _load_rewarded() -> void:
-	if not is_initialized or not ClassDB.class_exists("RewardedAdLoader"):
-		print("[AdManager] Rewarded ad load postponed: Waiting for AdMob initialization.")
+	if not is_initialized or _rewarded_ad != null:
 		return
-		
+	if not ClassDB.class_exists("RewardedAdLoader"):
+		return
 	var loader = ClassDB.instantiate("RewardedAdLoader")
-	var cb = ClassDB.instantiate("RewardedAdLoadCallback")
-	var req = ClassDB.instantiate("AdRequest")
-	
-	cb.on_ad_loaded = func(ad) -> void:
+	_rewarded_cb = ClassDB.instantiate("RewardedAdLoadCallback")
+	_rewarded_cb.on_ad_loaded = func(ad) -> void:
 		_rewarded_ad = ad
-		print("[AdManager] Rewarded Ad loaded successfully!")
-		ad.full_screen_content_callback.on_ad_dismissed_full_screen_content = func():
-			_rewarded_ad = null
-			_load_rewarded()
-		ad.full_screen_content_callback.on_ad_failed_to_show_full_screen_content = func(_err):
-			_rewarded_ad = null
-			_load_rewarded()
-			
-	cb.on_ad_failed_to_load = func(_err) -> void:
+		_rewarded_retry_delay = 2.0
+		rewarded_ready_changed.emit(true)
+		if ad and "full_screen_content_callback" in ad:
+			ad.full_screen_content_callback.on_ad_dismissed_full_screen_content = func():
+				_rewarded_ad = null
+				rewarded_ready_changed.emit(false)
+				if reward_pending:
+					reward_pending = false
+					rewarded_video_completed.emit()
+				_load_rewarded()
+			ad.full_screen_content_callback.on_ad_failed_to_show_full_screen_content = func(_err):
+				_rewarded_ad = null
+				reward_pending = false
+				rewarded_ready_changed.emit(false)
+				_load_rewarded()
+	_rewarded_cb.on_ad_failed_to_load = func(_err) -> void:
 		_rewarded_ad = null
-		print("[AdManager] Rewarded Ad failed to load.")
-		
-	loader.load(REWARDED_AD_ID, req, cb)
+		rewarded_ready_changed.emit(false)
+		get_tree().create_timer(_rewarded_retry_delay).timeout.connect(_load_rewarded)
+		_rewarded_retry_delay = minf(_rewarded_retry_delay * 2.0, 64.0)
 
+	if ClassDB.class_exists("AdRequest"):
+		loader.load(rewarded_id, ClassDB.instantiate("AdRequest"), _rewarded_cb)
 
-static func show_rewarded_ad(on_reward_earned: Callable) -> void:
-	print("[AdManager] Showing Google Rewarded Ad: ", REWARDED_AD_ID)
-	if instance and instance._rewarded_ad:
-		var user_rewarded: Array[bool] = [false]
-		
-		var reward_listener = ClassDB.instantiate("OnUserEarnedRewardListener")
-		reward_listener.on_user_earned_reward = func(_item):
-			user_rewarded[0] = true
-			
-		instance._rewarded_ad.full_screen_content_callback.on_ad_dismissed_full_screen_content = func():
-			instance._rewarded_ad = null
-			instance._load_rewarded()
-			if user_rewarded[0] and on_reward_earned.is_valid():
-				on_reward_earned.call()
-				
-		instance._rewarded_ad.full_screen_content_callback.on_ad_failed_to_show_full_screen_content = func(_err):
-			instance._rewarded_ad = null
-			instance._load_rewarded()
-			if on_reward_earned.is_valid():
-				on_reward_earned.call()
-				
-		instance._rewarded_ad.show(reward_listener)
+func show_rewarded_video() -> void:
+	if _rewarded_ad != null and _rewarded_ad.has_method("show"):
+		_reward_listener = ClassDB.instantiate("OnUserEarnedRewardListener")
+		_reward_listener.on_user_earned_reward = func(_reward) -> void:
+			reward_pending = true
+		_rewarded_ad.show(_reward_listener)
 	else:
-		show_toast("Ad not ready yet. Granting reward...")
-		if instance:
-			instance._load_rewarded()
-		# Fallback invoke callback so game flow doesn't freeze in editor/simulator
-		if on_reward_earned.is_valid():
-			on_reward_earned.call()
+		if OS.is_debug_build() or OS.get_name() != "Android":
+			rewarded_video_completed.emit()
 
-
-# ── Toast helper ────────────────────────────────────────────────────────────
-
-static func show_toast(message: String) -> void:
-	print("[AdManager Toast]: ", message)
-	var tree = Engine.get_main_loop() as SceneTree
-	if not tree or not tree.root: return
-
-	var toast_bg = PanelContainer.new()
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.12, 0.18, 0.92)
-	style.set_corner_radius_all(10)
-	style.set_content_margin_all(14)
-	style.border_width_left = 2
-	style.border_width_top = 2
-	style.border_width_right = 2
-	style.border_width_bottom = 2
-	style.border_color = Color(1.0, 0.85, 0.2, 0.9)
-	toast_bg.add_theme_stylebox_override("panel", style)
-
-	var label = Label.new()
-	label.text = message
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_color_override("font_color", Color(1, 1, 1))
-	label.add_theme_font_size_override("font_size", 18)
-	toast_bg.add_child(label)
-
-	toast_bg.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	toast_bg.offset_top = -100
-	toast_bg.offset_bottom = -50
-	toast_bg.z_index = 300
-	toast_bg.modulate.a = 0.0
-
-	tree.root.add_child(toast_bg)
-
-	var tween = toast_bg.create_tween()
-	tween.tween_property(toast_bg, "modulate:a", 1.0, 0.2)
-	tween.tween_interval(2.0)
-	tween.tween_property(toast_bg, "modulate:a", 0.0, 0.3)
-	tween.tween_callback(toast_bg.queue_free)
+func show_rewarded_ad(callback: Callable = Callable()) -> void:
+	if callback.is_valid():
+		var one_shot_cb: Callable
+		one_shot_cb = func():
+			if rewarded_video_completed.is_connected(one_shot_cb):
+				rewarded_video_completed.disconnect(one_shot_cb)
+			callback.call()
+		rewarded_video_completed.connect(one_shot_cb)
+	show_rewarded_video()

@@ -6,6 +6,7 @@ signal score_updated(new_score: int)
 signal lives_updated(new_lives: int)
 signal game_over(won: bool)
 signal ads_removed()
+signal coins_updated(new_balance: int)
 
 func emit_on_ads_removed() -> void:
 	ads_removed.emit()

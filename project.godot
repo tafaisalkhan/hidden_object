@@ -12,20 +12,20 @@ config_version=5
 
 config/name="difference find"
 run/main_scene="res://main/splash_screen.tscn"
-config/features=PackedStringArray("4.6", "Mobile")
+config/features=PackedStringArray("4.7", "Mobile")
 boot_splash/bg_color=Color(0.04, 0.06, 0.12, 1)
 boot_splash/image="res://assets/main/app_splash.png"
-boot_splash/fullsize=true
-boot_splash/use_filter=true
 config/icon="res://icon.svg"
-config/admob_app_id="ca-app-pub-1852108665659812~9828050799"
+config/admob_app_id="ca-app-pub-3940256099942544~3347511713"
 
 [autoload]
 
 SignalHub="*res://autoloads/signal_hub.gd"
 GameManager="*res://autoloads/game_manager.gd"
 MusicManager="*res://autoloads/music_manager.gd"
+BillingManager="*res://autoloads/billing_manager.gd"
 InAppPurchaseManager="*res://autoloads/in_app_purchase_manager.gd"
+PopupManager="*res://autoloads/popup_manager.gd"
 AdManager="*res://autoloads/ad_manager.gd"
 
 [display]
