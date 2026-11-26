@@ -100,6 +100,32 @@ func _ready():
 	else:
 		print("[FAIL] Test 5: PopupManager not found in root")
 
+	# Test 6: Verify MainMenu & UpperHUD Nodes exist natively in scene files
+	total += 1
+	var menu_scene = load("res://main/main_menu.tscn")
+	var hud_scene = load("res://hud/upper_hud.tscn")
+	if menu_scene and hud_scene:
+		var menu = menu_scene.instantiate()
+		var hud = hud_scene.instantiate()
+		var has_store_btn = menu.get_node_or_null("MainButtonsPanel/VBoxContainer/StoreButton") != null
+		var has_gifts_btn = menu.get_node_or_null("MainButtonsPanel/VBoxContainer/DailyGiftsButton") != null
+		var has_challenge_btn = menu.get_node_or_null("MainButtonsPanel/VBoxContainer/DailyChallengeButton") != null
+		var has_menu_coins = menu.get_node_or_null("MenuCoinsBtn") != null
+		var has_coffee_btn = menu.get_node_or_null("SettingsPanel/CenterContainer/VBox/CoffeeBtn") != null
+		var has_rate_btn = menu.get_node_or_null("SettingsPanel/CenterContainer/VBox/RateUsBtn") != null
+		var has_share_btn = menu.get_node_or_null("SettingsPanel/CenterContainer/VBox/ShareBtn") != null
+		var has_hud_coins = hud.get_node_or_null("MarginContainer/HBoxContainer/CoinsBtn") != null
+		
+		if has_store_btn and has_gifts_btn and has_challenge_btn and has_menu_coins and has_coffee_btn and has_rate_btn and has_share_btn and has_hud_coins:
+			print("[PASS] Test 6: MainMenu & UpperHUD persistent buttons verified in scene tree")
+			passed += 1
+		else:
+			print("[FAIL] Test 6: Missing one or more persistent buttons in scene tree")
+		menu.queue_free()
+		hud.queue_free()
+	else:
+		print("[FAIL] Test 6: Could not load main_menu.tscn or upper_hud.tscn")
+
 	print("\n=== VERIFICATION RESULT: %d/%d PASSED ===" % [passed, total])
 	if passed == total:
 		print("ALL CHECKS PASSED PERFECTLY!\n")

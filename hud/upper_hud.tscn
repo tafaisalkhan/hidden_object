@@ -1,9 +1,11 @@
-[gd_scene load_steps=9 format=3 uid="uid://upperhuduid"]
+[gd_scene load_steps=13 format=3 uid="uid://upperhuduid"]
 
 [ext_resource type="Script" path="res://hud/upper_hud.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://hearticonuid" path="res://assets/main/heart.png" id="2_heart"]
-[ext_resource type="PackedScene" uid="uid://hintbuttonuid" path="res://hud/hint_button.tscn" id="3_hint"]
+[ext_resource type="Texture2D" path="res://assets/main/heart.png" id="2_heart"]
+[ext_resource type="PackedScene" path="res://hud/hint_button.tscn" id="3_hint"]
 [ext_resource type="Texture2D" uid="uid://cwpdv5fnirn1a" path="res://assets/main/button.png" id="4_btn_bg"]
+[ext_resource type="FontFile" path="res://assets/fonts/LuckiestGuy-Regular.ttf" id="5_font"]
+[ext_resource type="Texture2D" path="res://assets/main/coin_icon.png" id="6_coin"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
 texture = ExtResource("4_btn_bg")
@@ -30,6 +32,36 @@ modulate_color = Color(0.7, 0.7, 0.8, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_coin_normal"]
+bg_color = Color(0.06, 0.09, 0.17, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.835294, 0.309804, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_coin_hover"]
+bg_color = Color(0.12, 0.18, 0.28, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.835294, 0.309804, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
 [node name="UpperHUD" type="CanvasLayer"]
 layer = 50
 script = ExtResource("1_script")
@@ -54,6 +86,7 @@ theme_override_constants/margin_right = 20
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/separation = 16
 alignment = 1
 
 [node name="HeartsContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
@@ -100,6 +133,21 @@ size_flags_vertical = 4
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
+
+[node name="CoinsBtn" type="Button" parent="MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(130, 46)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 0.835294, 0.309804, 1)
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_coin_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_coin_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_coin_normal")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = " 0 +"
+icon = ExtResource("6_coin")
+expand_icon = true
 
 [node name="ScoreContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2

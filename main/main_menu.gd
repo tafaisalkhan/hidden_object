@@ -546,167 +546,18 @@ func _on_settings_close_pressed():
 # ── Extra Store, Daily Challenge, & Popup Suite Helpers ───────────────────────
 
 func _setup_extra_ui() -> void:
-	# Top Right Gold-Framed Coin Pill
-	var coin_btn := Button.new()
-	coin_btn.name = "MenuCoinsBtn"
-	var coins_val: int = GameManager.coins if GameManager else 0
-	coin_btn.icon = preload("res://assets/main/coin_icon.png")
-	coin_btn.expand_icon = true
-	coin_btn.text = " %d +" % coins_val
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.06, 0.09, 0.17, 0.90) # Midnight navy
-	sb.border_color = Color("#ffd54f") # Rich metallic gold border
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(16)
-	sb.shadow_size = 6
-	sb.shadow_offset = Vector2(0, 3)
-	sb.shadow_color = Color(0, 0, 0, 0.45)
-	coin_btn.add_theme_stylebox_override("normal", sb)
-	var sb_hov := sb.duplicate() as StyleBoxFlat
-	sb_hov.bg_color = Color(0.12, 0.18, 0.28, 0.95)
-	coin_btn.add_theme_stylebox_override("hover", sb_hov)
-	coin_btn.add_theme_stylebox_override("pressed", sb)
-	coin_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	coin_btn.add_theme_font_override("font", preload("res://assets/fonts/LuckiestGuy-Regular.ttf"))
-	coin_btn.add_theme_font_size_override("font_size", 20)
-	coin_btn.add_theme_color_override("font_color", Color("#ffd54f"))
-	coin_btn.custom_minimum_size = Vector2(160, 50)
-	coin_btn.position = Vector2(get_viewport_rect().size.x - 180, 20)
-	coin_btn.pressed.connect(_open_store)
-	add_child(coin_btn)
+	var coin_btn = get_node_or_null("MenuCoinsBtn")
+	if coin_btn:
+		var coins_val: int = GameManager.coins if GameManager else 0
+		coin_btn.text = " %d +" % coins_val
 
 	if SignalHub:
 		SignalHub.coins_updated.connect(func(new_bal):
-			if is_instance_valid(coin_btn):
-				coin_btn.text = " %d +" % new_bal
+			var btn = get_node_or_null("MenuCoinsBtn")
+			if is_instance_valid(btn):
+				btn.text = " %d +" % new_bal
 				pulse_coin_button()
 		)
-
-	# Additional menu buttons in MainButtonsPanel/VBoxContainer (matching button texture)
-	var vbox := get_node_or_null("MainButtonsPanel/VBoxContainer") as VBoxContainer
-	if vbox:
-		var challenge_btn := _create_menu_button("🏆 Daily Challenge", _on_daily_challenge_pressed)
-		var gifts_btn := _create_menu_button("🎁 Daily Gifts", _on_daily_gifts_pressed)
-		var store_btn := _create_menu_button("🛒 Store", _open_store)
-		
-		var settings_btn := get_node_or_null("MainButtonsPanel/VBoxContainer/SettingsButton")
-		var settings_idx: int = settings_btn.get_index() if settings_btn else vbox.get_child_count()
-		vbox.add_child(challenge_btn)
-		vbox.move_child(challenge_btn, settings_idx)
-		vbox.add_child(gifts_btn)
-		vbox.move_child(gifts_btn, settings_idx + 1)
-		vbox.add_child(store_btn)
-		vbox.move_child(store_btn, settings_idx + 2)
-
-	# Extra buttons in SettingsPanel
-	var settings_vbox := get_node_or_null("SettingsPanel/CenterContainer/VBox") as VBoxContainer
-	if settings_vbox:
-		settings_vbox.add_theme_constant_override("separation", 10)
-		var close_btn := get_node_or_null("SettingsPanel/CenterContainer/VBox/SettingsCloseBtn")
-		var close_idx: int = close_btn.get_index() if close_btn else settings_vbox.get_child_count()
-		var update_btn := _create_settings_button("🚀 Check Update", func():
-			if PopupManager:
-				PopupManager.show_in_app_update_popup(self)
-		)
-		var rate_btn := _create_settings_button("★ Rate Us", func():
-			if PopupManager:
-				PopupManager.show_rate_popup(self)
-		)
-		var share_btn := _create_settings_button("🔗 Share Game", func():
-			if PopupManager:
-				PopupManager.show_share_popup(self)
-		)
-		settings_vbox.add_child(update_btn)
-		settings_vbox.move_child(update_btn, close_idx)
-		settings_vbox.add_child(rate_btn)
-		settings_vbox.move_child(rate_btn, close_idx + 1)
-		settings_vbox.add_child(share_btn)
-		settings_vbox.move_child(share_btn, close_idx + 2)
-
-func _create_menu_button(label_text: String, callback: Callable) -> Button:
-	var btn := Button.new()
-	btn.text = label_text
-	btn.custom_minimum_size = Vector2(250, 75)
-	btn.add_theme_font_size_override("font_size", 28)
-	btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
-	btn.add_theme_color_override("font_hover_color", Color(0.9, 0.9, 1, 1))
-	btn.add_theme_color_override("font_pressed_color", Color(0.7, 0.7, 0.8, 1))
-	btn.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
-	btn.add_theme_constant_override("outline_size", 8)
-
-	var btn_tex = preload("res://assets/main/button.png")
-	var sb_norm := StyleBoxTexture.new()
-	sb_norm.texture = btn_tex
-	sb_norm.texture_margin_left = 15.0
-	sb_norm.texture_margin_top = 15.0
-	sb_norm.texture_margin_right = 15.0
-	sb_norm.texture_margin_bottom = 15.0
-
-	var sb_hov := StyleBoxTexture.new()
-	sb_hov.texture = btn_tex
-	sb_hov.texture_margin_left = 15.0
-	sb_hov.texture_margin_top = 15.0
-	sb_hov.texture_margin_right = 15.0
-	sb_hov.texture_margin_bottom = 15.0
-	sb_hov.modulate_color = Color(0.9, 0.9, 1.1, 1.0)
-
-	var sb_press := StyleBoxTexture.new()
-	sb_press.texture = btn_tex
-	sb_press.texture_margin_left = 15.0
-	sb_press.texture_margin_top = 15.0
-	sb_press.texture_margin_right = 15.0
-	sb_press.texture_margin_bottom = 15.0
-	sb_press.modulate_color = Color(0.7, 0.7, 0.8, 1.0)
-
-	btn.add_theme_stylebox_override("normal", sb_norm)
-	btn.add_theme_stylebox_override("hover", sb_hov)
-	btn.add_theme_stylebox_override("pressed", sb_press)
-	btn.pressed.connect(callback)
-	return btn
-
-func _create_settings_button(label_text: String, callback: Callable) -> Button:
-	var btn := Button.new()
-	btn.text = label_text
-	btn.custom_minimum_size = Vector2(280, 56)
-	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	btn.add_theme_font_override("font", preload("res://assets/fonts/LuckiestGuy-Regular.ttf"))
-	btn.add_theme_font_size_override("font_size", 22)
-	btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
-	btn.add_theme_color_override("font_hover_color", Color(0.95, 0.95, 1, 1))
-	btn.add_theme_color_override("font_pressed_color", Color(0.7, 0.7, 0.8, 1))
-	btn.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
-	btn.add_theme_constant_override("outline_size", 6)
-
-	var btn_tex = preload("res://assets/main/button.png")
-	var sb_norm := StyleBoxTexture.new()
-	sb_norm.texture = btn_tex
-	sb_norm.texture_margin_left = 15.0
-	sb_norm.texture_margin_top = 15.0
-	sb_norm.texture_margin_right = 15.0
-	sb_norm.texture_margin_bottom = 15.0
-
-	var sb_hov := StyleBoxTexture.new()
-	sb_hov.texture = btn_tex
-	sb_hov.texture_margin_left = 15.0
-	sb_hov.texture_margin_top = 15.0
-	sb_hov.texture_margin_right = 15.0
-	sb_hov.texture_margin_bottom = 15.0
-	sb_hov.modulate_color = Color(1.1, 1.1, 1.2, 1.0)
-
-	var sb_press := StyleBoxTexture.new()
-	sb_press.texture = btn_tex
-	sb_press.texture_margin_left = 15.0
-	sb_press.texture_margin_top = 15.0
-	sb_press.texture_margin_right = 15.0
-	sb_press.texture_margin_bottom = 15.0
-	sb_press.modulate_color = Color(0.7, 0.7, 0.8, 1.0)
-
-	btn.add_theme_stylebox_override("normal", sb_norm)
-	btn.add_theme_stylebox_override("hover", sb_hov)
-	btn.add_theme_stylebox_override("pressed", sb_press)
-	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	btn.pressed.connect(callback)
-	return btn
 
 func pulse_coin_button() -> void:
 	var btn = get_node_or_null("MenuCoinsBtn")
@@ -730,3 +581,19 @@ func _on_daily_challenge_pressed() -> void:
 func _on_daily_gifts_pressed() -> void:
 	if PopupManager:
 		PopupManager.show_daily_reward_popup(self)
+
+func _on_coffee_pressed() -> void:
+	if PopupManager:
+		PopupManager.show_support_coffee_popup(self)
+
+func _on_rate_pressed() -> void:
+	if PopupManager:
+		PopupManager.show_rate_popup(self)
+
+func _on_share_pressed() -> void:
+	if PopupManager:
+		PopupManager.show_share_popup(self)
+
+func _on_update_pressed() -> void:
+	if PopupManager:
+		PopupManager.show_in_app_update_popup(self)
