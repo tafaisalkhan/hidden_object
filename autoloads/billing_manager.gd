@@ -171,10 +171,10 @@ func purchase_product(product_id: String) -> bool:
 			var response = plugin.purchase(product_id)
 			return response == OK or response == null or response == true
 
-	# Desktop / Editor testing simulation
+	# Desktop / Editor environment
 	if OS.get_name() != "Android":
-		_grant_product(product_id, false)
-		return true
+		_notify_user("Google Play Store is only available on Android. Purchases must be made through Google Play.")
+		return false
 
 	_notify_user("Google Play Store billing is unavailable on this device.")
 	return false
