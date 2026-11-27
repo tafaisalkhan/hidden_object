@@ -13,7 +13,7 @@ const PRODUCT_COIN_AMOUNTS := {
 	"coins_1000": {"coins": 1000, "price": "$0.99"},
 	"coins_2000": {"coins": 2000, "price": "$1.29"},
 	"coins_3000": {"coins": 3000, "price": "$1.99"},
-	"cofee": {"coins": 300, "price": "$1.49"},
+	"cofee": {"coins": 0, "price": "$1.99"},
 	"remove_ads": {"coins": 0, "price": "$4.99"}
 }
 const PRODUCTS := PRODUCT_COIN_AMOUNTS
@@ -39,7 +39,7 @@ var product_prices: Dictionary = {
 	"coins_1000": "$0.99",
 	"coins_2000": "$1.29",
 	"coins_3000": "$1.99",
-	"cofee": "$1.49",
+	"cofee": "$1.99",
 	"remove_ads": "$4.99"
 }
 
@@ -229,10 +229,8 @@ func _grant_product(product_id: String, restored: bool = false) -> void:
 		if not restored:
 			_notify_user("Ads permanently removed! Thank you!")
 	elif product_id == COFFEE_PRODUCT_ID:
-		if GameManager:
-			GameManager.add_coins(300)
-		coin_purchase_changed.emit(product_id, 300)
-		_notify_user("Thank you for the coffee! +300 Bonus Coins!")
+		coin_purchase_changed.emit(product_id, 0)
+		_notify_user("Thank you so much for the coffee! Your support helps us build more games!")
 	elif PRODUCT_COIN_AMOUNTS.has(product_id):
 		var amount: int = int(PRODUCT_COIN_AMOUNTS[product_id]["coins"])
 		if GameManager:

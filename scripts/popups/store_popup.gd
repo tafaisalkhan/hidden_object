@@ -37,8 +37,8 @@ const STORE_ITEMS := [
 		"id": "cofee",
 		"icon": "☕",
 		"title": "BUY COFFEE",
-		"desc": "Support dev + get 300 bonus coins!",
-		"price": "$1.49",
+		"desc": "Support dev team with a warm coffee tip!",
+		"price": "$1.99",
 		"type": "coffee"
 	},
 	{

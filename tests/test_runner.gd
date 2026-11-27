@@ -386,25 +386,29 @@ func _ready():
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(PopupManager.DAILY_SAVE_PATH))
 		gm.coins = 0
 
-		# 16a: CoffeePopup grants +300 coins
+		# 16a: CoffeePopup is pure $1.99 dev tip (grants 0 coins)
 		var coffee_inst = load("res://scenes/popups/coffee_popup.tscn").instantiate()
 		add_child(coffee_inst)
-		var coffee_buy: Button = coffee_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/VBox/BuyBtn")
+		var coffee_buy: Button = coffee_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/Margin/VBox/BuyBtn")
+		if not coffee_buy:
+			coffee_buy = coffee_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/VBox/BuyBtn")
 		if coffee_buy:
 			coffee_buy.emit_signal("pressed")
-		var coffee_ok: bool = (gm.coins == 300)
+		var coffee_ok: bool = (gm.coins == 0)
 		if is_instance_valid(coffee_inst):
 			coffee_inst.queue_free()
 
 		# 16b: DailyRewardPopup grants +50 coins ONCE even if clicked twice, and marks Day 1 only
 		var dr_inst = load("res://scenes/popups/daily_reward_popup.tscn").instantiate()
 		add_child(dr_inst)
-		var dr_claim: Button = dr_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/VBox/ClaimBtn")
+		var dr_claim: Button = dr_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/Margin/VBox/ClaimBtn")
+		if not dr_claim:
+			dr_claim = dr_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/VBox/ClaimBtn")
 		if dr_claim:
 			dr_claim.emit_signal("pressed")
 			dr_claim.emit_signal("pressed")
 		var streak_state: Dictionary = PopupManager.get_streak_state()
-		var dr_ok: bool = (gm.coins == 350 and int(streak_state["streak_days"]) == 1 and int(streak_state["active_idx"]) == 0 and not bool(streak_state["can_claim"]))
+		var dr_ok: bool = (gm.coins == 50 and int(streak_state["streak_days"]) == 1 and int(streak_state["active_idx"]) == 0 and not bool(streak_state["can_claim"]))
 		if is_instance_valid(dr_inst):
 			dr_inst.queue_free()
 
@@ -412,11 +416,13 @@ func _ready():
 		PopupManager.add_daily_challenge_progress(10)
 		var dcp_inst = load("res://scenes/popups/daily_challenge_popup.tscn").instantiate()
 		add_child(dcp_inst)
-		var dcp_btn: Button = dcp_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/VBox/ActionBtn")
+		var dcp_btn: Button = dcp_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/Margin/VBox/ActionBtn")
+		if not dcp_btn:
+			dcp_btn = dcp_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/VBox/ActionBtn")
 		if dcp_btn:
 			dcp_btn.emit_signal("pressed")
 			dcp_btn.emit_signal("pressed")
-		var dcp_ok: bool = (gm.coins == 500 and PopupManager.is_daily_challenge_completed())
+		var dcp_ok: bool = (gm.coins == 200 and PopupManager.is_daily_challenge_completed())
 		if is_instance_valid(dcp_inst):
 			dcp_inst.queue_free()
 
@@ -426,7 +432,7 @@ func _ready():
 		PopupManager.coin_animation_enabled = true
 
 		if coffee_ok and dr_ok and dcp_ok:
-			print("[PASS] Test 16: CoffeePopup (+300), DailyRewardPopup (+50 single-claim & Day 1 state), and DailyChallengePopup (+150) verified")
+			print("[PASS] Test 16: CoffeePopup ($1.99 tip, 0 coins), DailyRewardPopup (+50 single-claim), and DailyChallengePopup (+150) verified")
 			passed += 1
 		else:
 			print("[FAIL] Test 16: Popup action check failed (coffee=%s dr=%s dcp=%s coins=%d)" % [coffee_ok, dr_ok, dcp_ok, gm.coins])

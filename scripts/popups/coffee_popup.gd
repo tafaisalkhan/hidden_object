@@ -24,9 +24,9 @@ func _ready() -> void:
 	_animate_in()
 
 func _refresh_price() -> void:
-	var price := "$1.49"
+	var price := "$1.99"
 	if BillingManager and BillingManager.has_method("get_product_price"):
-		price = BillingManager.get_product_price("cofee", "$1.49")
+		price = BillingManager.get_product_price("cofee", "$1.99")
 	buy_btn.text = "BUY COFFEE • %s" % price
 
 func _animate_in() -> void:

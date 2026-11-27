@@ -113,7 +113,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 15
-text = "Help fuel future mystery rooms and puzzle packs with a small tip — plus get +300 bonus coins!"
+text = "Help fuel future mystery rooms and puzzle packs with a small tip — plus get warm coffee tip!"
 horizontal_alignment = 1
 autowrap_mode = 3
 
@@ -134,7 +134,7 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_btn")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "BUY COFFEE • $1.49"
+text = "BUY COFFEE • $1.99"
 
 [node name="CloseBtn" type="Button" parent="Dimmer/Center/FrameBox"]
 layout_mode = 1
