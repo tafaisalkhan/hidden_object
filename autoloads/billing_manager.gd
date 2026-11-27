@@ -11,9 +11,13 @@ const COFFEE_PRODUCT_ID := "cofee"
 
 const PRODUCT_COIN_AMOUNTS := {
 	"coins_1000": {"coins": 1000, "price": "$0.99"},
+	"coin_1000": {"coins": 1000, "price": "$0.99"},
 	"coins_2000": {"coins": 2000, "price": "$1.29"},
+	"coin_2000": {"coins": 2000, "price": "$1.29"},
 	"coins_3000": {"coins": 3000, "price": "$1.99"},
+	"coin_3000": {"coins": 3000, "price": "$1.99"},
 	"cofee": {"coins": 0, "price": "$1.99"},
+	"coffee": {"coins": 0, "price": "$1.99"},
 	"remove_ads": {"coins": 0, "price": "$4.99"}
 }
 const PRODUCTS := PRODUCT_COIN_AMOUNTS
@@ -37,9 +41,13 @@ var remove_ads_owned: bool = false:
 
 var product_prices: Dictionary = {
 	"coins_1000": "$0.99",
+	"coin_1000": "$0.99",
 	"coins_2000": "$1.29",
+	"coin_2000": "$1.29",
 	"coins_3000": "$1.99",
+	"coin_3000": "$1.99",
 	"cofee": "$1.99",
+	"coffee": "$1.99",
 	"remove_ads": "$4.99"
 }
 
