@@ -54,6 +54,7 @@ const STORE_ITEMS := [
 func _ready() -> void:
 	close_btn.pressed.connect(_close)
 	bottom_close_btn.pressed.connect(_close)
+	_setup_restore_button()
 	_update_balance()
 	_build_items()
 	_animate_in()
@@ -68,13 +69,44 @@ func _ready() -> void:
 		BillingManager.remove_ads_purchase_changed.connect(func(_owned):
 			_build_items()
 		)
+		if BillingManager.has_signal("prices_updated"):
+			BillingManager.prices_updated.connect(_build_items)
 	if SignalHub:
 		SignalHub.coins_updated.connect(func(_bal):
 			_update_balance()
 		)
+		SignalHub.ads_removed.connect(_build_items)
+
+func _setup_restore_button() -> void:
+	var layout := $Dimmer/Center/FrameBox/Panel/Margin/Layout
+	if not layout or layout.has_node("BottomRow"):
+		return
+	var row := HBoxContainer.new()
+	row.name = "BottomRow"
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 12)
+	layout.add_child(row)
+
+	var restore_btn := Button.new()
+	restore_btn.name = "RestoreBtn"
+	restore_btn.text = "Restore"
+	restore_btn.custom_minimum_size = Vector2(150, 44)
+	if PopupManager and PopupManager.has_method("style_primary_button"):
+		PopupManager.style_primary_button(restore_btn, 17, Color(0.9, 0.95, 1.0))
+	restore_btn.pressed.connect(func():
+		if BillingManager and BillingManager.has_method("restore_purchases"):
+			BillingManager.restore_purchases(func(_ok: bool):
+				if is_instance_valid(self):
+					_build_items()
+			)
+	)
+	row.add_child(restore_btn)
+
+	bottom_close_btn.reparent(row)
 
 func _animate_in() -> void:
-	frame_box.pivot_offset = frame_box.size * 0.5
+	var box_size := frame_box.size if frame_box.size != Vector2.ZERO else frame_box.custom_minimum_size
+	frame_box.pivot_offset = box_size * 0.5
 	frame_box.scale = Vector2(0.7, 0.7)
 	frame_box.modulate.a = 0.0
 	var tw = create_tween().set_parallel(true)
@@ -82,6 +114,8 @@ func _animate_in() -> void:
 	tw.tween_property(frame_box, "modulate:a", 1.0, 0.2)
 
 func _close() -> void:
+	var box_size := frame_box.size if frame_box.size != Vector2.ZERO else frame_box.custom_minimum_size
+	frame_box.pivot_offset = box_size * 0.5
 	var tw = create_tween().set_parallel(true)
 	tw.tween_property(frame_box, "scale", Vector2(0.8, 0.8), 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_property(frame_box, "modulate:a", 0.0, 0.15)
@@ -178,9 +212,10 @@ func _create_item_card(data: Dictionary) -> PanelContainer:
 	hbox.add_child(vbox)
 
 	var buy_btn := Button.new()
-	buy_btn.custom_minimum_size = Vector2(100, 46)
+	buy_btn.custom_minimum_size = Vector2(105, 46)
 
-	var is_remove_ads_owned: bool = (str(data.get("id", "")) == "remove_ads" and BillingManager and BillingManager.is_remove_ads_owned())
+	var product_id := str(data.get("id", ""))
+	var is_remove_ads_owned: bool = (product_id == "remove_ads" and BillingManager and BillingManager.is_remove_ads_owned())
 
 	if is_remove_ads_owned:
 		buy_btn.text = "OWNED ✓"
@@ -193,7 +228,10 @@ func _create_item_card(data: Dictionary) -> PanelContainer:
 		buy_btn.add_theme_font_size_override("font_size", 14)
 		buy_btn.add_theme_color_override("font_color", Color("#b0bec5"))
 	else:
-		buy_btn.text = data["price"]
+		var price_text: String = str(data["price"])
+		if BillingManager and BillingManager.has_method("get_product_price"):
+			price_text = BillingManager.get_product_price(product_id, price_text)
+		buy_btn.text = price_text
 		var btn_tex = preload("res://assets/main/button.png")
 		var sb_norm := StyleBoxTexture.new()
 		sb_norm.texture = btn_tex
@@ -227,7 +265,7 @@ func _create_item_card(data: Dictionary) -> PanelContainer:
 		buy_btn.add_theme_color_override("font_color", Color("#fff9c4"))
 		buy_btn.add_theme_color_override("font_outline_color", Color(0.0823529, 0.12549, 0.243137, 1))
 		buy_btn.add_theme_constant_override("outline_size", 4)
-		buy_btn.pressed.connect(_on_buy_pressed.bind(data["id"]))
+		buy_btn.pressed.connect(_on_buy_pressed.bind(product_id))
 
 	hbox.add_child(buy_btn)
 	return card

@@ -65,10 +65,13 @@ func _ready() -> void:
 		BillingManager.remove_ads_purchase_changed.connect(func(_owned):
 			_build_items()
 		)
+		if BillingManager.has_signal("prices_updated"):
+			BillingManager.prices_updated.connect(_build_items)
 	if SignalHub:
 		SignalHub.coins_updated.connect(func(_bal):
 			_update_balance()
 		)
+		SignalHub.ads_removed.connect(_build_items)
 
 func _apply_styles() -> void:
 	var panel := $Center/FrameBox/Panel
@@ -205,7 +208,11 @@ func _create_item_card(data: Dictionary) -> PanelContainer:
 		buy_btn.add_theme_font_size_override("font_size", 14)
 		buy_btn.add_theme_color_override("font_color", Color("#b0bec5"))
 	else:
-		buy_btn.text = data["price"]
+		var prod_id := str(data.get("id", ""))
+		var price_txt := str(data["price"])
+		if BillingManager and BillingManager.has_method("get_product_price"):
+			price_txt = BillingManager.get_product_price(prod_id, price_txt)
+		buy_btn.text = price_txt
 		var btn_tex = preload("res://assets/main/button.png")
 		var sb_norm := StyleBoxTexture.new()
 		sb_norm.texture = btn_tex

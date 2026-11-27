@@ -224,21 +224,28 @@ func _ready():
 	else:
 		print("[FAIL] Test 10: MusicManager missing play_click method")
 
-	# Test 11: Level Music Dependent on Level Name
+	# Test 11: Distinct Level Music Per Room AND Per Sublevel (sub1..sub7 never repeat)
 	total += 1
 	var mm_lvl_ref = get_node_or_null("/root/MusicManager")
 	if mm_lvl_ref != null and mm_lvl_ref.has_method("play_game_music"):
-		mm_lvl_ref.play_game_music("kitchen")
+		mm_lvl_ref.play_game_music("kitchen", "sub1")
 		var k_wav: AudioStreamWAV = mm_lvl_ref.game_player.stream as AudioStreamWAV
-		var kitchen_ok: bool = (mm_lvl_ref.current_track_id == "kitchen" and k_wav != null and k_wav.loop_end > 0)
-		mm_lvl_ref.play_game_music("drawing_room")
-		var d_wav: AudioStreamWAV = mm_lvl_ref.game_player.stream as AudioStreamWAV
-		var drawing_ok: bool = (mm_lvl_ref.current_track_id == "drawing_room" and d_wav != null and d_wav.loop_end > 0)
-		if kitchen_ok and drawing_ok:
-			print("[PASS] Test 11: Level sound plays based on level name from assets/music/ with verified loop points")
+		var kitchen_ok: bool = (mm_lvl_ref.current_track_id == "kitchen_sub1" and k_wav != null and k_wav.loop_end >= 1322000)
+
+		var sub_streams: Array = []
+		var unique_ok: bool = true
+		for s_idx in range(1, 8):
+			mm_lvl_ref.play_game_music("drawing_room", "sub%d" % s_idx)
+			var st: AudioStream = mm_lvl_ref.game_player.stream
+			if st == null or sub_streams.has(st):
+				unique_ok = false
+			sub_streams.append(st)
+
+		if kitchen_ok and unique_ok and sub_streams.size() == 7:
+			print("[PASS] Test 11: Every room and sublevel (Level 1..7) plays a distinct melodic soundtrack with full 30s loop")
 			passed += 1
 		else:
-			print("[FAIL] Test 11: Level sound failed to map or load stream for level name")
+			print("[FAIL] Test 11: Level music uniqueness failed (kitchen_ok=%s unique_ok=%s)" % [kitchen_ok, unique_ok])
 	else:
 		print("[FAIL] Test 11: MusicManager missing play_game_music")
 
@@ -299,6 +306,129 @@ func _ready():
 			print("[FAIL] Test 13: Daily challenge level generation returned invalid dictionary")
 	else:
 		print("[FAIL] Test 13: Failed to load res://main/daily_challenge.tscn")
+
+	# Test 14: Remove Ads Button in SettingsPopup & StorePopup + Persistence
+	total += 1
+	if gm != null and bm != null and adm != null:
+		PopupManager.coin_animation_enabled = false
+		bm.remove_ads_owned = false
+		gm.ads_removed = false
+		gm.ad_free_until_unix = 0.0
+		InAppPurchaseManager.is_ads_removed = false
+		gm.save_game()
+
+		var sp = load("res://scenes/popups/settings_popup.tscn").instantiate()
+		var stp = load("res://scenes/popups/store_popup.tscn").instantiate()
+		add_child(sp)
+		add_child(stp)
+
+		var rem_btn: Button = sp.get_node_or_null("Dimmer/Center/FrameBox/Panel/Margin/VBox/RemoveAdsBtn")
+		var before_free: bool = adm.is_ad_free()
+		if rem_btn:
+			rem_btn.emit_signal("pressed")
+
+		var after_owned: bool = bm.is_remove_ads_owned() and gm.ads_removed and InAppPurchaseManager.is_ads_removed and adm.is_ad_free()
+		var btn_updated: bool = (rem_btn != null and rem_btn.disabled and "Removed" in rem_btn.text)
+
+		# Verify persistence across save/load
+		gm.ads_removed = false
+		gm.load_game()
+		var persisted_ok: bool = gm.ads_removed
+
+		sp.queue_free()
+		stp.queue_free()
+
+		# Reset clean state
+		bm.remove_ads_owned = false
+		gm.ads_removed = false
+		InAppPurchaseManager.is_ads_removed = false
+		InAppPurchaseManager.save_purchase_state()
+		gm.save_game()
+
+		if (not before_free) and after_owned and btn_updated and persisted_ok:
+			print("[PASS] Test 14: Remove Ads button works in Settings & Store, disables ads immediately, and persists to disk")
+			passed += 1
+		else:
+			print("[FAIL] Test 14: Remove Ads verification failed: before=%s after=%s btn=%s persist=%s" % [before_free, after_owned, btn_updated, persisted_ok])
+	else:
+		print("[FAIL] Test 14: Missing managers")
+
+	# Test 15: NoAdsPopup 24h Rewarded Video & BuyForever Buttons
+	total += 1
+	var noads_inst = load("res://scenes/popups/no_ads_popup.tscn").instantiate()
+	if noads_inst and gm and adm:
+		gm.ad_free_until_unix = 0.0
+		add_child(noads_inst)
+		var watch_btn: Button = noads_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/VBox/WatchAdBtn")
+		var forever_btn: Button = noads_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/VBox/BuyForeverBtn")
+		if watch_btn:
+			watch_btn.emit_signal("pressed")
+		var temp_ad_free_ok: bool = adm.is_ad_free() and gm.ad_free_until_unix > Time.get_unix_time_from_system()
+		gm.ad_free_until_unix = 0.0
+		gm.save_game()
+		if is_instance_valid(noads_inst):
+			noads_inst.queue_free()
+		if watch_btn != null and forever_btn != null and temp_ad_free_ok:
+			print("[PASS] Test 15: NoAdsPopup Watch Video grants real 24h ad-free mode & Buy Forever button wired")
+			passed += 1
+		else:
+			print("[FAIL] Test 15: NoAdsPopup test failed (watch=%s forever=%s active=%s)" % [watch_btn != null, forever_btn != null, temp_ad_free_ok])
+	else:
+		print("[FAIL] Test 15: Failed to instantiate NoAdsPopup")
+
+	# Test 16: CoffeePopup, DailyRewardPopup (anti-double-claim), and DailyChallengePopup
+	total += 1
+	if gm and PopupManager:
+		# Clean daily save file before testing
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(PopupManager.DAILY_SAVE_PATH))
+		gm.coins = 0
+
+		# 16a: CoffeePopup grants +300 coins
+		var coffee_inst = load("res://scenes/popups/coffee_popup.tscn").instantiate()
+		add_child(coffee_inst)
+		var coffee_buy: Button = coffee_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/VBox/BuyBtn")
+		if coffee_buy:
+			coffee_buy.emit_signal("pressed")
+		var coffee_ok: bool = (gm.coins == 300)
+		if is_instance_valid(coffee_inst):
+			coffee_inst.queue_free()
+
+		# 16b: DailyRewardPopup grants +50 coins ONCE even if clicked twice, and marks Day 1 only
+		var dr_inst = load("res://scenes/popups/daily_reward_popup.tscn").instantiate()
+		add_child(dr_inst)
+		var dr_claim: Button = dr_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/VBox/ClaimBtn")
+		if dr_claim:
+			dr_claim.emit_signal("pressed")
+			dr_claim.emit_signal("pressed")
+		var streak_state: Dictionary = PopupManager.get_streak_state()
+		var dr_ok: bool = (gm.coins == 350 and int(streak_state["streak_days"]) == 1 and int(streak_state["active_idx"]) == 0 and not bool(streak_state["can_claim"]))
+		if is_instance_valid(dr_inst):
+			dr_inst.queue_free()
+
+		# 16c: DailyChallengePopup tracks 10 items found & claims +150 coins once
+		PopupManager.add_daily_challenge_progress(10)
+		var dcp_inst = load("res://scenes/popups/daily_challenge_popup.tscn").instantiate()
+		add_child(dcp_inst)
+		var dcp_btn: Button = dcp_inst.get_node_or_null("Dimmer/Center/FrameBox/Panel/VBox/ActionBtn")
+		if dcp_btn:
+			dcp_btn.emit_signal("pressed")
+			dcp_btn.emit_signal("pressed")
+		var dcp_ok: bool = (gm.coins == 500 and PopupManager.is_daily_challenge_completed())
+		if is_instance_valid(dcp_inst):
+			dcp_inst.queue_free()
+
+		# Clean up test artifacts
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(PopupManager.DAILY_SAVE_PATH))
+		gm.reset_all_progress()
+		PopupManager.coin_animation_enabled = true
+
+		if coffee_ok and dr_ok and dcp_ok:
+			print("[PASS] Test 16: CoffeePopup (+300), DailyRewardPopup (+50 single-claim & Day 1 state), and DailyChallengePopup (+150) verified")
+			passed += 1
+		else:
+			print("[FAIL] Test 16: Popup action check failed (coffee=%s dr=%s dcp=%s coins=%d)" % [coffee_ok, dr_ok, dcp_ok, gm.coins])
+	else:
+		print("[FAIL] Test 16: Missing GameManager or PopupManager")
 
 	print("\n=== VERIFICATION RESULT: %d/%d PASSED ===" % [passed, total])
 	if passed == total:

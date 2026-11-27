@@ -26,13 +26,14 @@ func _ready():
 	RenderingServer.set_default_clear_color(Color(0.0823529, 0.12549, 0.243137, 1.0))
 	
 	SignalHub.game_over.connect(_on_game_over)
+	SignalHub.ads_removed.connect(func(): _set_ad_placeholder_visible(false))
 	continue_btn.pressed.connect(_on_continue_pressed)
 	retry_btn.pressed.connect(_on_retry_pressed)
 	menu_btn.pressed.connect(_on_menu_pressed)
 	
-	# Start ad cycle (initially waiting 10s with ads hidden)
-	ad_cycle_timer = 10.0
-	ad_cycle_state = "initial_wait"
+	# AdMob Anti-Suspension Rule 5 & 7: No banners or timer-based ad refresh during active gameplay
+	if AdManager:
+		AdManager.set_gameplay_active(true)
 	_set_ad_placeholder_visible(false)
 	
 	if has_node("DebugHUD"):
@@ -46,31 +47,18 @@ func _ready():
 		if GameManager.selected_sublevel_id != "":
 			sublevel_id = GameManager.selected_sublevel_id
 	
-	# Play category-specific background music (crossfades from menu music)
-	if MusicManager:
-		MusicManager.play_game_music(level_id)
-	
 	load_level(level_id)
 
 
-func _process(delta: float) -> void:
-	if InAppPurchaseManager.is_ads_removed:
-		return
-		
-	ad_cycle_timer -= delta
-	if ad_cycle_timer <= 0.0:
-		if ad_cycle_state == "initial_wait" or ad_cycle_state == "hidden_wait":
-			ad_cycle_state = "showing"
-			ad_cycle_timer = 10.0
-			_set_ad_placeholder_visible(true)
-		elif ad_cycle_state == "showing":
-			ad_cycle_state = "hidden_wait"
-			ad_cycle_timer = 5.0
-			_set_ad_placeholder_visible(false)
+func _process(_delta: float) -> void:
+	# AdMob Policy Compliance: Never cycle or display banner ads during active gameplay
+	pass
 
 
 func _set_ad_placeholder_visible(visible: bool) -> void:
-	if InAppPurchaseManager.is_ads_removed:
+	if AdManager and AdManager.is_ad_free():
+		visible = false
+	elif InAppPurchaseManager and InAppPurchaseManager.is_ads_removed:
 		visible = false
 		
 	if has_node("AdPlaceholder"):
@@ -84,9 +72,7 @@ func _set_ad_placeholder_visible(visible: bool) -> void:
 		var ad_height_offset = -90.0 if visible else 0.0
 		$ViewportControl.offset_bottom = base_bottom_offset + ad_height_offset
 		
-	if visible:
-		AdManager.show_banner(false)
-	else:
+	if not visible and AdManager:
 		AdManager.hide_banner()
 
 func load_level(id: String):
@@ -95,7 +81,7 @@ func load_level(id: String):
 	if game_over_hud:
 		game_over_hud.visible = false
 	if MusicManager:
-		MusicManager.play_game_music(level_id)
+		MusicManager.play_game_music(level_id, sublevel_id)
 
 	# Clear old level
 	for child in level_container.get_children():
@@ -612,6 +598,8 @@ func _on_continue_pressed():
 	_on_menu_pressed()
 
 func _on_menu_pressed():
+	if AdManager:
+		AdManager.set_gameplay_active(false)
 	if GameManager:
 		GameManager.return_to_level_select = true
 		GameManager.return_to_daily_screen = GameManager.is_daily_mode

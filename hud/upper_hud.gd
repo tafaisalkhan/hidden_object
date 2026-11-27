@@ -24,7 +24,10 @@ func _update_coins_display():
 		coins_btn.text = " %d +" % coins_val
 
 func _on_coins_btn_pressed():
-	var store_scene = load("res://scenes/ui_screens/store_ui.tscn")
+	if PopupManager and PopupManager.has_method("show_store_popup"):
+		PopupManager.show_store_popup(get_tree().current_scene)
+		return
+	var store_scene = load("res://scenes/popups/store_popup.tscn")
 	if store_scene:
 		var store = store_scene.instantiate()
 		get_tree().current_scene.add_child(store)
@@ -33,6 +36,7 @@ func _on_exit_pressed():
 	AdManager.set_gameplay_active(false)
 	if GameManager:
 		GameManager.return_to_level_select = true
+		GameManager.return_to_daily_screen = GameManager.is_daily_mode
 	get_tree().change_scene_to_file("res://main/main_menu.tscn")
 
 func _on_score_updated(new_score: int):

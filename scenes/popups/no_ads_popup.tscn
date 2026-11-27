@@ -61,7 +61,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="FrameBox" type="Control" parent="Dimmer/Center"]
-custom_minimum_size = Vector2(460, 320)
+custom_minimum_size = Vector2(460, 395)
 layout_mode = 2
 
 [node name="Panel" type="Panel" parent="Dimmer/Center/FrameBox"]
@@ -79,12 +79,12 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = 24.0
+offset_top = 22.0
 offset_right = -24.0
-offset_bottom = -24.0
+offset_bottom = -22.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 12
 alignment = 1
 
 [node name="Eyebrow" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox"]
@@ -92,7 +92,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.505882, 0.831373, 0.980392, 1)
 theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 14
-text = "DAILY PRIVILEGE"
+text = "AD-FREE DETECTIVE MODE"
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox"]
@@ -102,39 +102,50 @@ theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1
 theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 28
-text = "Free No-Ads For 24h 🎬"
+text = "Play Without Ads!"
 horizontal_alignment = 1
 
 [node name="Description" type="Label" parent="Dimmer/Center/FrameBox/Panel/VBox"]
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.878431, 0.909804, 0.960784, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 15
-text = "Watch 1 short sponsored video to enjoy seamless detective gameplay with zero interstitial ads for the next 24 hours!"
+text = "Watch 1 short video for 24 hours with zero banner & interstitial ads, or remove ads permanently!"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="Spacer" type="Control" parent="Dimmer/Center/FrameBox/Panel/VBox"]
-custom_minimum_size = Vector2(0, 8)
-layout_mode = 2
-
 [node name="WatchAdBtn" type="Button" parent="Dimmer/Center/FrameBox/Panel/VBox"]
-custom_minimum_size = Vector2(340, 58)
+custom_minimum_size = Vector2(350, 54)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 0.980392, 0.768627, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
 theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "WATCH VIDEO • NO ADS"
+text = "WATCH VIDEO • 24H NO ADS"
+
+[node name="BuyForeverBtn" type="Button" parent="Dimmer/Center/FrameBox/Panel/VBox"]
+custom_minimum_size = Vector2(350, 54)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 0.88, 0.35, 1)
+theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "REMOVE FOREVER • $4.99"
 
 [node name="CloseBtn" type="Button" parent="Dimmer/Center/FrameBox"]
 layout_mode = 1
@@ -153,4 +164,4 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_close")
 theme_override_styles/hover = SubResource("StyleBoxFlat_close")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_close")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "✕"
+text = "X"

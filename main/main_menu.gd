@@ -39,7 +39,9 @@ var mode_select_panel: Control
 func _ready():
 	_build_mode_select_panel()
 	SignalHub.ads_removed.connect(_update_settings_ui)
+	AdManager.set_gameplay_active(false)
 	AdManager.show_banner()
+	AdManager.check_in_app_update()
 	
 	# Play menu background music (crossfades from game music if returning)
 	if MusicManager:
@@ -85,6 +87,8 @@ func _ready():
 		if not is_instance_valid(self):
 			return
 		if PopupManager:
+			if PopupManager.update_popup_shown_this_session or has_node("UpdatePopup"):
+				return
 			if PopupManager.can_claim_daily_reward():
 				PopupManager.show_daily_reward_popup(self)
 			elif PopupManager.has_method("show_random_support_popup"):
@@ -713,12 +717,16 @@ func _update_settings_ui():
 func _on_sound_toggle_pressed():
 	if GameManager:
 		GameManager.sound_enabled = not GameManager.sound_enabled
-		sound_toggle_btn.text = "Sound FX: ON" if GameManager.sound_enabled else "Sound FX: OFF"
+		GameManager.save_game()
+		if sound_toggle_btn:
+			sound_toggle_btn.text = "Sound FX: ON" if GameManager.sound_enabled else "Sound FX: OFF"
 
 func _on_music_toggle_pressed():
 	if GameManager:
 		GameManager.music_enabled = not GameManager.music_enabled
-		music_toggle_btn.text = "Music: ON" if GameManager.music_enabled else "Music: OFF"
+		GameManager.save_game()
+		if music_toggle_btn:
+			music_toggle_btn.text = "Music: ON" if GameManager.music_enabled else "Music: OFF"
 		if MusicManager:
 			if GameManager.music_enabled:
 				MusicManager.play_menu_music()
@@ -868,6 +876,35 @@ func _setup_extra_ui() -> void:
 	var challenge_btn = get_node_or_null("MainButtonsPanel/VBoxContainer/SecondaryRow/DailyChallengeButton")
 	if challenge_btn and not challenge_btn.pressed.is_connected(_on_daily_challenge_pressed):
 		challenge_btn.pressed.connect(_on_daily_challenge_pressed)
+
+	var top_bar_node = get_node_or_null("TopBar")
+	if top_bar_node and not top_bar_node.has_node("VersionBadge"):
+		var app_ver := str(ProjectSettings.get_setting("application/config/version", "v1.0.9"))
+		var is_v10 := app_ver.ends_with(".10")
+		var badge := PanelContainer.new()
+		badge.name = "VersionBadge"
+		badge.position = Vector2(86, 23)
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.06, 0.34, 0.28, 0.94) if is_v10 else Color(0.06, 0.09, 0.17, 0.9)
+		sb.border_color = Color(0.35, 0.96, 0.82, 1.0) if is_v10 else Color(1.0, 0.835, 0.31, 0.9)
+		sb.set_border_width_all(2)
+		sb.set_corner_radius_all(14)
+		sb.content_margin_left = 14
+		sb.content_margin_right = 14
+		sb.content_margin_top = 8
+		sb.content_margin_bottom = 8
+		badge.add_theme_stylebox_override("panel", sb)
+		var v_lbl := Label.new()
+		v_lbl.text = ("★ " + app_ver + " ★") if is_v10 else app_ver
+		v_lbl.add_theme_font_override("font", preload("res://assets/fonts/LuckiestGuy-Regular.ttf"))
+		v_lbl.add_theme_font_size_override("font_size", 17)
+		v_lbl.add_theme_color_override("font_color", Color(0.72, 1.0, 0.88, 1.0) if is_v10 else Color(1.0, 0.88, 0.45, 1.0))
+		v_lbl.add_theme_color_override("font_outline_color", Color(0.05, 0.08, 0.16, 1.0))
+		v_lbl.add_theme_constant_override("outline_size", 4)
+		v_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		badge.add_child(v_lbl)
+		top_bar_node.add_child(badge)
 
 	var coin_btn = get_node_or_null("TopBar/RightHBox/MenuCoinsBtn")
 	if coin_btn:

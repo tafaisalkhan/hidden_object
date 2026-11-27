@@ -7,6 +7,7 @@ var items_found: int = 0
 var wrong_taps: int = 0
 var coins: int = 0
 var ads_removed: bool = false
+var ad_free_until_unix: float = 0.0
 var last_awarded_stars: int = 0
 var last_awarded_coins: int = 0
 const HINT_COST: int = 50
@@ -19,6 +20,7 @@ var sound_enabled: bool = true
 var music_enabled: bool = true
 
 const SAVE_PATH: String = "user://save_data.cfg"
+const LEGACY_IAP_PATH: String = "user://settings.cfg"
 var unlocked_level_num: int = 1
 var completed_levels: Dictionary = {}
 var return_to_level_select: bool = false
@@ -39,6 +41,14 @@ func _ready():
 	SignalHub.game_over.connect(_on_game_over)
 	load_game()
 
+func is_ad_free_active() -> bool:
+	if ads_removed:
+		return true
+	return ad_free_until_unix > Time.get_unix_time_from_system()
+
+func get_ad_free_remaining_sec() -> float:
+	return maxf(0.0, ad_free_until_unix - Time.get_unix_time_from_system())
+
 func start_level(total_items: int):
 	score = 0
 	lives = 5
@@ -57,7 +67,7 @@ func _emit_initial_stats():
 	SignalHub.items_progress_updated.emit(items_found, items_to_find)
 	SignalHub.coins_updated.emit(coins)
 
-func _on_item_found(item_name: String):
+func _on_item_found(_item_name: String):
 	score += 100
 	items_found += 1
 	SignalHub.score_updated.emit(score)
@@ -143,6 +153,8 @@ func save_game() -> void:
 	var cfg = ConfigFile.new()
 	cfg.set_value("settings", "sound_enabled", sound_enabled)
 	cfg.set_value("settings", "music_enabled", music_enabled)
+	cfg.set_value("iap", "ads_removed", ads_removed)
+	cfg.set_value("iap", "ad_free_until_unix", ad_free_until_unix)
 	cfg.set_value("progress", "completed_levels", completed_levels)
 	cfg.set_value("progress", "coins", coins)
 	cfg.set_value("progress", "arcade_recent", arcade_recent)
@@ -161,6 +173,8 @@ func load_game() -> void:
 	if cfg.load(SAVE_PATH) == OK:
 		sound_enabled = bool(cfg.get_value("settings", "sound_enabled", true))
 		music_enabled = bool(cfg.get_value("settings", "music_enabled", true))
+		ads_removed = bool(cfg.get_value("iap", "ads_removed", false))
+		ad_free_until_unix = float(cfg.get_value("iap", "ad_free_until_unix", 0.0))
 		completed_levels = cfg.get_value("progress", "completed_levels", {})
 		coins = int(cfg.get_value("progress", "coins", 0))
 		arcade_recent = cfg.get_value("progress", "arcade_recent", [])
@@ -172,6 +186,15 @@ func load_game() -> void:
 	else:
 		completed_levels = {}
 		print("[GameManager] No saved game progress found (starting fresh).")
+
+	# Migrate legacy settings.cfg IAP flag if present
+	if not ads_removed:
+		var legacy_cfg = ConfigFile.new()
+		if legacy_cfg.load(LEGACY_IAP_PATH) == OK:
+			if bool(legacy_cfg.get_value("iap", "remove_ads", false)):
+				ads_removed = true
+				save_game()
+
 	if daily_first_day < 0:
 		daily_first_day = get_day_number(get_today_key())
 		save_game()

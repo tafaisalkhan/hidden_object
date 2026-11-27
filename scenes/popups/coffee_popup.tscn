@@ -113,7 +113,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 15
-text = "Help fuel future mystery rooms, smooth animations, and puzzle packs with a small $1.49 tip!"
+text = "Help fuel future mystery rooms and puzzle packs with a small tip — plus get +300 bonus coins!"
 horizontal_alignment = 1
 autowrap_mode = 3
 

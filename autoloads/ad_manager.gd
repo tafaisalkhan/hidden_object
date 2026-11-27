@@ -8,6 +8,7 @@ const BANNER_AD_ID: String = "ca-app-pub-1852108665659812/2570759337"
 const INTERSTITIAL_AD_ID: String = "ca-app-pub-1852108665659812/1949560770"
 const REWARDED_AD_ID: String = "ca-app-pub-1852108665659812/6071020642"
 const PLAY_STORE_URL := "https://play.google.com/store/apps/details?id=com.hiddenobject"
+const MARKET_URL := "market://details?id=com.hiddenobject"
 
 # --- AdMob Anti-Suspension Policy Constants ---
 const INTERSTITIAL_EVERY_N_LEVELS := 3
@@ -59,8 +60,14 @@ var _app_plugin: Object = null
 func _enter_tree() -> void:
 	instance = self
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_RESUMED and OS.get_name() == "Android":
+		check_in_app_update()
+
 func _ready() -> void:
 	_init_app_plugin()
+	if SignalHub:
+		SignalHub.ads_removed.connect(on_ads_removed_changed)
 	if OS.get_name() == "Android":
 		_plugin_available = true
 		_load_local_ad_ids()
@@ -97,18 +104,40 @@ func check_in_app_update() -> void:
 func start_in_app_update() -> void:
 	if _app_plugin and _app_plugin.has_method("start_update"):
 		_app_plugin.start_update()
+	else:
+		if OS.get_name() == "Android":
+			if OS.shell_open(MARKET_URL) != OK:
+				OS.shell_open(PLAY_STORE_URL)
+		else:
+			OS.shell_open(PLAY_STORE_URL)
 
 func request_rate_app() -> void:
 	if _app_plugin and _app_plugin.has_method("request_review"):
 		_app_plugin.request_review()
 	else:
-		OS.shell_open(PLAY_STORE_URL)
+		if OS.get_name() == "Android":
+			if OS.shell_open(MARKET_URL) != OK:
+				OS.shell_open(PLAY_STORE_URL)
+		else:
+			OS.shell_open(PLAY_STORE_URL)
 
-func request_share_game() -> void:
+func request_share_game(custom_message: String = "") -> void:
+	var msg := custom_message if not custom_message.is_empty() else ("Find all the hidden objects before lives run out! Play Difference Find:\n" + PLAY_STORE_URL)
 	if _app_plugin and _app_plugin.has_method("share_text"):
-		_app_plugin.share_text("Find the hidden differences and objects! Download: " + PLAY_STORE_URL)
+		_app_plugin.share_text(msg)
 	else:
-		DisplayServer.clipboard_set(PLAY_STORE_URL)
+		DisplayServer.clipboard_set(msg)
+
+static func show_toast(message: String) -> void:
+	if message.is_empty():
+		return
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree and tree.root:
+		var pm = tree.root.get_node_or_null("PopupManager")
+		if pm and pm.has_method("show_toast"):
+			pm.show_toast(message)
+			return
+	print("[Toast] ", message)
 
 func _load_local_ad_ids() -> void:
 	if ResourceLoader.exists("res://admob_secrets.gd"):
@@ -136,13 +165,37 @@ func _init_admob() -> void:
 			Engine.get_singleton("MobileAds").initialize(_init_listener)
 
 func is_ad_free() -> bool:
+	if ads_suspended:
+		return true
+	if InAppPurchaseManager and InAppPurchaseManager.is_ads_removed:
+		return true
 	if not is_inside_tree():
 		return false
 	var billing := get_node_or_null("/root/BillingManager")
-	if billing != null and billing.has_method("is_remove_ads_owned"):
-		return billing.is_remove_ads_owned()
+	if billing != null and billing.has_method("is_remove_ads_owned") and billing.is_remove_ads_owned():
+		return true
 	var gm := get_node_or_null("/root/GameManager")
-	return gm != null and "ads_removed" in gm and gm.ads_removed
+	if gm != null:
+		if gm.has_method("is_ad_free_active") and gm.is_ad_free_active():
+			return true
+		if "ads_removed" in gm and gm.ads_removed:
+			return true
+	return false
+
+func grant_temporary_ad_removal(duration_sec: float = 86400.0) -> void:
+	var gm := get_node_or_null("/root/GameManager") if is_inside_tree() else null
+	if gm != null:
+		var now_sec := Time.get_unix_time_from_system()
+		var base_sec := maxf(now_sec, gm.ad_free_until_unix)
+		gm.ad_free_until_unix = base_sec + duration_sec
+		gm.save_game()
+	on_ads_removed_changed()
+	show_toast("No-Ads unlocked for the next 24 hours!")
+
+func on_ads_removed_changed() -> void:
+	hide_banner()
+	destroy_banner()
+	_interstitial_ad = null
 
 func set_gameplay_active(active: bool) -> void:
 	gameplay_active = active
@@ -308,18 +361,28 @@ func show_rewarded_video() -> void:
 			reward_pending = true
 		_rewarded_ad.show(_reward_listener)
 	else:
-		if OS.is_debug_build() or OS.get_name() != "Android":
+		if OS.get_name() != "Android":
 			rewarded_video_completed.emit()
+		else:
+			rewarded_video_unavailable.emit("Video ad is still loading. Please try again in a moment.")
+			show_toast("Video ad is still loading. Please try again shortly.")
+			_load_rewarded()
 
 func show_rewarded_ad(callback: Callable = Callable()) -> void:
+	if OS.get_name() == "Android" and not is_rewarded_ready():
+		show_toast("Video ad is still loading. Please try again shortly.")
+		_load_rewarded()
+		if callback.is_valid() and callback.get_argument_count() > 0:
+			callback.call(false)
+		return
 	if callback.is_valid():
-		var one_shot_cb: Callable
-		one_shot_cb = func():
-			if rewarded_video_completed.is_connected(one_shot_cb):
-				rewarded_video_completed.disconnect(one_shot_cb)
+		rewarded_video_completed.connect(func():
 			if callback.get_argument_count() == 0:
 				callback.call()
 			else:
 				callback.call(true)
-		rewarded_video_completed.connect(one_shot_cb)
+		, CONNECT_ONE_SHOT)
 	show_rewarded_video()
+
+func show_rewarded(callback: Callable = Callable()) -> void:
+	show_rewarded_ad(callback)

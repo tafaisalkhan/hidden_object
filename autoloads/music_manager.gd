@@ -1,8 +1,8 @@
 extends Node
 
 # ── Music & SFX Manager Autoload ──────────────────────────────────────────────
-# Plays background music per category during gameplay and menu music on menus.
-# Also plays one-shot sound effects for game events.
+# Plays distinct background music per room & sublevel during gameplay,
+# and menu music on menus. Also plays one-shot sound effects for game events.
 
 # ── Audio Players ─────────────────────────────────────────────────────────────
 var menu_player: AudioStreamPlayer
@@ -10,13 +10,24 @@ var game_player: AudioStreamPlayer
 var current_track_id: String = ""
 
 # ── Crossfade settings ────────────────────────────────────────────────────────
-const FADE_DURATION: float = 1.2
+const FADE_DURATION: float = 0.8
 const MENU_VOLUME_DB: float = -6.0
 const GAME_VOLUME_DB: float = -4.0
 const SFX_VOLUME_DB: float = -4.0
 
 var menu_tween: Tween = null
 var game_tween: Tween = null
+
+# Ordered track rotation list so every sublevel (Level 1..10) plays a different track!
+const ROOM_ORDER: Array[String] = [
+	"drawing_room",
+	"kitchen",
+	"study_room",
+	"bed_room",
+	"dining_room",
+	"basement",
+	"store_room",
+]
 
 # ── Track mapping: category_id → audio file path ─────────────────────────────
 var category_tracks: Dictionary = {
@@ -33,7 +44,6 @@ var category_tracks: Dictionary = {
 var menu_track: String = "res://assets/music/menu_theme.mp3"
 
 # ── SFX file paths ────────────────────────────────────────────────────────────
-# Place these .wav files in res://assets/sfx/
 var sfx_paths: Dictionary = {
 	"win":         "res://assets/sfx/win.wav",
 	"lose":        "res://assets/sfx/loss.wav",
@@ -53,7 +63,6 @@ var sfx_cache: Dictionary = {}
 
 
 func _ready():
-	# Create music players for crossfading
 	menu_player = AudioStreamPlayer.new()
 	menu_player.bus = "Master"
 	menu_player.volume_db = MENU_VOLUME_DB
@@ -66,7 +75,7 @@ func _ready():
 	game_player.name = "GamePlayer"
 	add_child(game_player)
 
-	# Failsafe continuous loop reconnection
+	# Seamless continuous loop reconnection for both players
 	menu_player.finished.connect(func():
 		if current_track_id == "menu" and GameManager and GameManager.music_enabled:
 			menu_player.play()
@@ -94,7 +103,7 @@ func play_menu_music():
 	if not GameManager.music_enabled:
 		stop_all()
 		return
-	if current_track_id == "menu":
+	if current_track_id == "menu" and menu_player.playing:
 		return
 	current_track_id = "menu"
 	var track_to_play = menu_track
@@ -102,12 +111,14 @@ func play_menu_music():
 		track_to_play = "res://assets/music/menu_theme.wav"
 	if not ResourceLoader.exists(track_to_play):
 		track_to_play = "res://assets/menu/menu_theme.wav"
-	_play_track(menu_player, track_to_play, MENU_VOLUME_DB)
+	_play_track(menu_player, track_to_play, MENU_VOLUME_DB, 1.0)
 	_fade_out(game_player)
 
 
-## Play the category-specific background music for gameplay.
-func play_game_music(category_id: String = ""):
+## Play distinct background music for each room & sublevel.
+## - Level 1 (sub1) of any room plays that room's signature track (e.g. kitchen.wav).
+## - Level 2..10 (sub2..sub10) rotate through the 7 distinct room tracks so consecutive levels never repeat the same music!
+func play_game_music(category_id: String = "", sublevel_id: String = ""):
 	if not GameManager.music_enabled:
 		stop_all()
 		return
@@ -116,36 +127,71 @@ func play_game_music(category_id: String = ""):
 		category_id = GameManager.selected_level_id
 	if category_id == "":
 		category_id = "drawing_room"
+
+	if sublevel_id == "" and GameManager and GameManager.selected_sublevel_id != "":
+		sublevel_id = GameManager.selected_sublevel_id
 		
-	var key = category_id.to_lower().strip_edges()
-	# Normalize common aliases
-	if key == "drawingroom": key = "drawing_room"
-	elif key == "bedroom": key = "bed_room"
-	elif key == "diningroom": key = "dining_room"
-	elif key == "storeroom": key = "store_room"
-	elif key == "studyroom": key = "study_room"
-	
-	if current_track_id == key and game_player.playing:
+	var key = _normalize_room_key(category_id)
+	var sub_key = sublevel_id.to_lower().strip_edges()
+	var sub_num: int = 1
+	if sub_key.begins_with("sub"):
+		sub_num = maxi(1, int(sub_key.substr(3)))
+
+	# Keep current_track_id compatible when sublevel_id is omitted in direct calls,
+	# while distinguishing sub1..sub10 during gameplay so every level switches music!
+	var composite_id: String = key if sub_key.is_empty() else ("%s_%s" % [key, sub_key])
+	if current_track_id == composite_id and game_player.playing:
 		return
-		
-	current_track_id = key
-	
-	var track_to_play: String = ""
-	if category_tracks.has(key):
-		track_to_play = category_tracks[key]
-	elif ResourceLoader.exists("res://assets/music/" + key + ".wav"):
-		track_to_play = "res://assets/music/" + key + ".wav"
-	elif ResourceLoader.exists("res://assets/music/" + key + ".mp3"):
-		track_to_play = "res://assets/music/" + key + ".mp3"
-	else:
-		track_to_play = category_tracks.get("drawing_room", "res://assets/music/drawing_room.wav")
-		
+
+	current_track_id = composite_id
+
+	var resolved := resolve_track_for_level(key, sub_num)
+	var track_to_play: String = str(resolved["path"])
+	var pitch_val: float = float(resolved["pitch"])
+
 	if ResourceLoader.exists(track_to_play):
-		_play_track(game_player, track_to_play, GAME_VOLUME_DB)
+		_play_track(game_player, track_to_play, GAME_VOLUME_DB, pitch_val)
 		_fade_out(menu_player)
 	else:
 		_fade_out(menu_player)
 		_fade_out(game_player)
+
+
+func _normalize_room_key(raw_id: String) -> String:
+	var key = raw_id.to_lower().strip_edges()
+	if key == "drawingroom": return "drawing_room"
+	if key == "bedroom": return "bed_room"
+	if key == "diningroom": return "dining_room"
+	if key == "storeroom": return "store_room"
+	if key == "studyroom": return "study_room"
+	return key
+
+
+func resolve_track_for_level(room_key: String, sub_num: int = 1) -> Dictionary:
+	# 1. Check if a custom sublevel-specific audio file exists first
+	var custom_wav := "res://assets/music/%s_sub%d.wav" % [room_key, sub_num]
+	if ResourceLoader.exists(custom_wav):
+		return {"path": custom_wav, "pitch": 1.0, "track_key": "%s_sub%d" % [room_key, sub_num]}
+	var custom_mp3 := "res://assets/music/%s_sub%d.mp3" % [room_key, sub_num]
+	if ResourceLoader.exists(custom_mp3):
+		return {"path": custom_mp3, "pitch": 1.0, "track_key": "%s_sub%d" % [room_key, sub_num]}
+
+	# 2. Sublevel 1 always plays the room's own primary soundtrack;
+	#    Sublevels 2..10 rotate through all 7 distinct room tracks so every level has unique music!
+	var base_idx: int = ROOM_ORDER.find(room_key)
+	if base_idx < 0:
+		if ResourceLoader.exists("res://assets/music/" + room_key + ".wav"):
+			return {"path": "res://assets/music/" + room_key + ".wav", "pitch": 1.0, "track_key": room_key}
+		if ResourceLoader.exists("res://assets/music/" + room_key + ".mp3"):
+			return {"path": "res://assets/music/" + room_key + ".mp3", "pitch": 1.0, "track_key": room_key}
+		base_idx = 0
+
+	var rotated_key: String = ROOM_ORDER[(base_idx + maxi(0, sub_num - 1)) % ROOM_ORDER.size()]
+	var path: String = str(category_tracks.get(rotated_key, "res://assets/music/drawing_room.wav"))
+	# For sublevels 8..10 (second pass over the 7 tracks in Drawing Room), apply a musical transposition (+2 semitones) so even Level 8..10 feel fresh!
+	var cycle_pass: int = int(maxi(0, sub_num - 1) / ROOM_ORDER.size())
+	var pitch: float = 1.0 if cycle_pass == 0 else 1.12246 # +2 semitones major second
+	return {"path": path, "pitch": pitch, "track_key": rotated_key}
 
 
 ## Stop all music with a fade out.
@@ -170,15 +216,12 @@ func on_music_setting_changed():
 
 # ── Public API: Sound Effects ─────────────────────────────────────────────────
 
-## Play a one-shot sound effect by name.
-## Names: "win", "lose", "item_found", "wrong_click", "button", "star_fill"
 func play_sfx(sfx_name: String, volume_db: float = SFX_VOLUME_DB, pitch: float = 1.0):
 	if not GameManager.sound_enabled:
 		return
 	var stream = sfx_cache.get(sfx_name, null)
 	if stream == null:
 		return
-	# Use a fresh player so multiple SFX can overlap
 	var player = AudioStreamPlayer.new()
 	player.bus = "Master"
 	player.volume_db = volume_db
@@ -191,27 +234,36 @@ func play_sfx(sfx_name: String, volume_db: float = SFX_VOLUME_DB, pitch: float =
 
 # ── Internal ──────────────────────────────────────────────────────────────────
 
-func _play_track(player: AudioStreamPlayer, path: String, target_db: float):
+func _play_track(player: AudioStreamPlayer, path: String, target_db: float, pitch_scale_val: float = 1.0):
 	if not ResourceLoader.exists(path):
 		return
 	var stream = load(path)
 	if stream == null:
 		return
-	if player.stream == stream and player.playing:
+	if player.stream == stream and is_equal_approx(player.pitch_scale, pitch_scale_val) and player.playing:
 		return
 		
-	# Enable loop on stream dynamically based on audio format
+	# Enable accurate full-length loop on stream based on audio format
 	if stream is AudioStreamWAV:
-		stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
-		if stream.loop_end <= stream.loop_begin:
+		var total_frames: int = int(round(stream.get_length() * float(stream.mix_rate)))
+		if total_frames <= 0:
 			var bytes_per_sample = 2 if stream.format == AudioStreamWAV.FORMAT_16_BITS else 1
 			var channels = 2 if stream.stereo else 1
-			stream.loop_end = int(stream.data.size() / (bytes_per_sample * channels))
+			total_frames = int(stream.data.size() / (bytes_per_sample * channels))
+		stream.loop_begin = 0
+		stream.loop_end = total_frames
+		if stream.format in [AudioStreamWAV.FORMAT_8_BITS, AudioStreamWAV.FORMAT_16_BITS, AudioStreamWAV.FORMAT_IMA_ADPCM]:
+			stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		else:
+			# For QOA (format 3), keep LOOP_DISABLED so player.finished cleanly restarts full 30s track
+			stream.loop_mode = AudioStreamWAV.LOOP_DISABLED
 	elif "loop" in stream:
 		stream.loop = true
 		
+	player.stop()
 	player.stream = stream
-	player.volume_db = -40.0
+	player.pitch_scale = pitch_scale_val
+	player.volume_db = -32.0
 	player.play()
 	
 	if player == game_player:
@@ -233,7 +285,7 @@ func _fade_out(player: AudioStreamPlayer):
 		if game_tween and game_tween.is_valid():
 			game_tween.kill()
 		game_tween = create_tween()
-		game_tween.tween_property(player, "volume_db", -40.0, FADE_DURATION).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+		game_tween.tween_property(player, "volume_db", -45.0, FADE_DURATION * 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 		game_tween.tween_callback(func():
 			if player == game_player and current_track_id == "menu":
 				player.stop()
@@ -242,17 +294,14 @@ func _fade_out(player: AudioStreamPlayer):
 		if menu_tween and menu_tween.is_valid():
 			menu_tween.kill()
 		menu_tween = create_tween()
-		menu_tween.tween_property(player, "volume_db", -40.0, FADE_DURATION).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+		menu_tween.tween_property(player, "volume_db", -45.0, FADE_DURATION * 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 		menu_tween.tween_callback(func():
 			if player == menu_player and current_track_id != "menu":
 				player.stop()
 		)
 
 
-
-
-
-# â”€â”€ Universal Button Tap Sound Automation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Universal Button Tap Sound Automation ────────────────────────────────────
 
 func _connect_all_buttons_in_tree() -> void:
 	if not is_inside_tree():
@@ -270,7 +319,6 @@ func _on_node_added(node: Node) -> void:
 		_bind_button(node)
 
 func _bind_button(btn: BaseButton) -> void:
-	# Avoid binding hidden object items (they have their own star/wrong sounds)
 	if "item_id" in btn or (btn.get_script() and "hidden_item" in btn.get_script().resource_path):
 		return
 	var cb = Callable(self, "_on_any_button_pressed")
