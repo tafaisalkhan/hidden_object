@@ -878,33 +878,64 @@ func _setup_extra_ui() -> void:
 		challenge_btn.pressed.connect(_on_daily_challenge_pressed)
 
 	var top_bar_node = get_node_or_null("TopBar")
-	if top_bar_node and not top_bar_node.has_node("VersionBadge"):
-		var app_ver := str(ProjectSettings.get_setting("application/config/version", "v1.0.9"))
-		var is_v10 := app_ver.ends_with(".10")
-		var badge := PanelContainer.new()
-		badge.name = "VersionBadge"
-		badge.position = Vector2(86, 23)
-		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0.06, 0.34, 0.28, 0.94) if is_v10 else Color(0.06, 0.09, 0.17, 0.9)
-		sb.border_color = Color(0.35, 0.96, 0.82, 1.0) if is_v10 else Color(1.0, 0.835, 0.31, 0.9)
-		sb.set_border_width_all(2)
-		sb.set_corner_radius_all(14)
-		sb.content_margin_left = 14
-		sb.content_margin_right = 14
-		sb.content_margin_top = 8
-		sb.content_margin_bottom = 8
-		badge.add_theme_stylebox_override("panel", sb)
-		var v_lbl := Label.new()
-		v_lbl.text = ("★ " + app_ver + " ★") if is_v10 else app_ver
-		v_lbl.add_theme_font_override("font", preload("res://assets/fonts/LuckiestGuy-Regular.ttf"))
-		v_lbl.add_theme_font_size_override("font_size", 17)
-		v_lbl.add_theme_color_override("font_color", Color(0.72, 1.0, 0.88, 1.0) if is_v10 else Color(1.0, 0.88, 0.45, 1.0))
-		v_lbl.add_theme_color_override("font_outline_color", Color(0.05, 0.08, 0.16, 1.0))
-		v_lbl.add_theme_constant_override("outline_size", 4)
-		v_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		badge.add_child(v_lbl)
-		top_bar_node.add_child(badge)
+	if top_bar_node:
+		# Apply Android camera notch / rounded screen safe-area margin so Settings & Coins are never clipped
+		var safe_left := 52.0
+		var safe_right := 36.0
+		var safe_top := 20.0
+		if OS.get_name() == "Android":
+			var win_size := Vector2(DisplayServer.window_get_size())
+			var safe_rect := Rect2(DisplayServer.get_display_safe_area())
+			var vp_size := get_viewport_rect().size
+			if win_size.x > 0.0 and win_size.y > 0.0 and safe_rect.size.x > 0.0:
+				var sx := vp_size.x / win_size.x
+				var sy := vp_size.y / win_size.y
+				safe_left = maxf(52.0, safe_rect.position.x * sx + 16.0)
+				var right_cut := (win_size.x - (safe_rect.position.x + safe_rect.size.x)) * sx
+				safe_right = maxf(36.0, right_cut + 16.0)
+				safe_top = maxf(20.0, safe_rect.position.y * sy + 12.0)
+
+		var settings_btn_node := top_bar_node.get_node_or_null("SettingsButton") as Button
+		if settings_btn_node:
+			settings_btn_node.offset_left = safe_left
+			settings_btn_node.offset_top = safe_top
+			settings_btn_node.offset_right = safe_left + 178.0
+			settings_btn_node.offset_bottom = safe_top + 52.0
+
+		var right_hbox := top_bar_node.get_node_or_null("RightHBox") as Control
+		if right_hbox:
+			right_hbox.offset_top = safe_top
+			right_hbox.offset_bottom = safe_top + 52.0
+			right_hbox.offset_right = -safe_right
+			right_hbox.offset_left = -safe_right - 320.0
+
+		if not top_bar_node.has_node("VersionBadge"):
+			var app_ver := str(ProjectSettings.get_setting("application/config/version", "v1.0.10"))
+			var is_updated := not app_ver.ends_with(".9")
+			var badge := PanelContainer.new()
+			badge.name = "VersionBadge"
+			badge.position = Vector2(safe_left + 190.0, safe_top + 4.0)
+			badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = Color(0.06, 0.34, 0.28, 0.94) if is_updated else Color(0.06, 0.09, 0.17, 0.9)
+			sb.border_color = Color(0.35, 0.96, 0.82, 1.0) if is_updated else Color(1.0, 0.835, 0.31, 0.9)
+			sb.set_border_width_all(2)
+			sb.set_corner_radius_all(14)
+			sb.content_margin_left = 14
+			sb.content_margin_right = 14
+			sb.content_margin_top = 8
+			sb.content_margin_bottom = 8
+			badge.add_theme_stylebox_override("panel", sb)
+			var v_lbl := Label.new()
+			v_lbl.text = ("★ " + app_ver + " ★") if is_updated else app_ver
+			v_lbl.add_theme_font_override("font", preload("res://assets/fonts/LuckiestGuy-Regular.ttf"))
+			v_lbl.add_theme_font_size_override("font_size", 17)
+			v_lbl.add_theme_color_override("font_color", Color(0.72, 1.0, 0.88, 1.0) if is_updated else Color(1.0, 0.88, 0.45, 1.0))
+			v_lbl.add_theme_color_override("font_outline_color", Color(0.05, 0.08, 0.16, 1.0))
+			v_lbl.add_theme_constant_override("outline_size", 4)
+			v_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			badge.add_child(v_lbl)
+			top_bar_node.add_child(badge)
 
 	var coin_btn = get_node_or_null("TopBar/RightHBox/MenuCoinsBtn")
 	if coin_btn:

@@ -461,13 +461,14 @@ grow_horizontal = 2
 mouse_filter = 2
 
 [node name="SettingsButton" type="Button" parent="TopBar"]
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(178, 52)
 layout_mode = 1
-offset_left = 24.0
+offset_left = 52.0
 offset_top = 20.0
-offset_right = 74.0
-offset_bottom = 70.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+offset_right = 230.0
+offset_bottom = 72.0
+theme_override_colors/font_color = Color(1, 0.95, 0.6, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.0823529, 0.12549, 0.243137, 1)
 theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("10_display_font")
@@ -476,6 +477,7 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = " SETTINGS"
 icon = ExtResource("12_settings_icon")
 expand_icon = true
 
