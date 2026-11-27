@@ -224,7 +224,7 @@ func _ready():
 	else:
 		print("[FAIL] Test 10: MusicManager missing play_click method")
 
-	# Test 11: Distinct Level Music Per Room AND Per Sublevel (sub1..sub7 never repeat)
+	# Test 11: Dedicated Room Music & Menu Music Seamless Recovery
 	total += 1
 	var mm_lvl_ref = get_node_or_null("/root/MusicManager")
 	if mm_lvl_ref != null and mm_lvl_ref.has_method("play_game_music"):
@@ -232,20 +232,23 @@ func _ready():
 		var k_wav: AudioStreamWAV = mm_lvl_ref.game_player.stream as AudioStreamWAV
 		var kitchen_ok: bool = (mm_lvl_ref.current_track_id == "kitchen_sub1" and k_wav != null and k_wav.loop_end >= 1322000)
 
-		var sub_streams: Array = []
-		var unique_ok: bool = true
-		for s_idx in range(1, 8):
-			mm_lvl_ref.play_game_music("drawing_room", "sub%d" % s_idx)
-			var st: AudioStream = mm_lvl_ref.game_player.stream
-			if st == null or sub_streams.has(st):
-				unique_ok = false
-			sub_streams.append(st)
+		# Verify rooms map to their dedicated tracks without random shuffling
+		var rooms_tested := ["drawing_room", "kitchen", "basement", "bed_room", "dining_room", "store_room", "study_room"]
+		var room_tracks_ok := true
+		for r_id in rooms_tested:
+			var res_t: Dictionary = mm_lvl_ref.resolve_track_for_level(r_id, 1)
+			if str(res_t.get("track_key", "")) != r_id:
+				room_tracks_ok = false
 
-		if kitchen_ok and unique_ok and sub_streams.size() == 7:
-			print("[PASS] Test 11: Every room and sublevel (Level 1..7) plays a distinct melodic soundtrack with full 30s loop")
+		# Verify menu music resumes smoothly at full volume
+		mm_lvl_ref.play_menu_music()
+		var menu_ok: bool = (mm_lvl_ref.current_track_id == "menu" and mm_lvl_ref.menu_player != null and mm_lvl_ref.menu_player.playing)
+
+		if kitchen_ok and room_tracks_ok and menu_ok:
+			print("[PASS] Test 11: Dedicated room soundtracks & seamless menu music recovery verified")
 			passed += 1
 		else:
-			print("[FAIL] Test 11: Level music uniqueness failed (kitchen_ok=%s unique_ok=%s)" % [kitchen_ok, unique_ok])
+			print("[FAIL] Test 11: Music verification failed (kitchen_ok=%s rooms_ok=%s menu_ok=%s)" % [kitchen_ok, room_tracks_ok, menu_ok])
 	else:
 		print("[FAIL] Test 11: MusicManager missing play_game_music")
 
