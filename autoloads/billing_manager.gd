@@ -236,7 +236,7 @@ func _grant_product(product_id: String, restored: bool = false) -> void:
 		remove_ads_owned = true
 		if not restored:
 			_notify_user("Ads permanently removed! Thank you!")
-	elif product_id == COFFEE_PRODUCT_ID:
+	elif product_id == COFFEE_PRODUCT_ID or product_id == "coffee":
 		coin_purchase_changed.emit(product_id, 0)
 		_notify_user("Thank you so much for the coffee! Your support helps us build more games!")
 	elif PRODUCT_COIN_AMOUNTS.has(product_id):
